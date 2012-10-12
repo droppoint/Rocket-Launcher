@@ -4,54 +4,48 @@ Created on 04.10.2012
 
 @author: APartilov
 '''
-from PySide import QtCore, QtGui, QtDeclarative
-from PySide import QtSvg
-
+from PySide import QtCore, QtGui
+import logging.handlers
+from Connector import Connector
 import sys
 
-app = QtGui.QApplication(sys.argv)
-
-
-class Provider(QtCore.QObject):
-    def __init__(self):
-        QtCore.QObject.__init__(self)
-
-    @QtCore.Slot(unicode, result='QVariant')
-    def get_data(self, something):
-        print 'get_data(', something, ') called'
-
-
-def printed():
-    print "signal recieved"
-
-
-class Console(QtCore.QObject):
-    @QtCore.Slot(str)
-    def outputStr(self, s):
-        print s
-
-
-
-#provider = Provider()
-
-view = QtDeclarative.QDeclarativeView()
 
 #borderless
-view.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+#view.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 
 #view.rootContext().setContextProperty('provider', provider)
-view.setSource('../QML/RocketLauncher.qml')
 
 #findchild
 
-rootObject = view.rootObject()
-rootObject.messageAcceptance.connect(printed)
-#connecting to the signal
-rootObject.signalize('Signal sended')
+#signals connections
+#rootObject.messageAcceptance.connect(printed)
 
-con = Console()
-context = view.rootContext()
-context.setContextProperty("con", con)
-view.show()
 
-sys.exit(app.exec_())
+#con = Console()
+#context = view.rootContext()
+#context.setContextProperty("con", con)
+
+if __name__ == "__main__":
+    # logger system initialization
+    logger = logging.getLogger('RocketOne')
+    logger.setLevel(logging.DEBUG)
+    #basic config here
+    fh = logging.handlers.RotatingFileHandler('debug.log',
+                                      mode='w',
+                                      maxBytes=524288,
+                                      backupCount=1)
+    fh.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+    logger.info('RocketOne. Launch.')
+
+    app = QtGui.QApplication(sys.argv)
+    if "-debug" in sys.argv:
+        print "CATCH"
+    print sys.argv
+
+    controller = Connector()
+
+    sys.exit(app.exec_())

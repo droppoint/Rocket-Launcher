@@ -6,6 +6,21 @@ Rectangle {
     width: 300
     height: 560
     color: "#e6e6e6"
+    //
+	
+	signal messageAcceptance(string notice, int number);
+	
+    function signalize(status) {
+        if (status=="200"){
+        	console.log('ok')
+        	root.state = "connecting"
+        }
+        else if (status=="300"){
+        	console.log('not ok')
+        	root.state = ""
+        }
+    }
+    
     MouseArea {
         id: mousearea1
         anchors.fill: parent
@@ -62,7 +77,10 @@ Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 28
-                onBtnClicked: root.state = "connecting"
+                onBtnClicked: {
+                	root.state = "connecting"
+                	messageAcceptance("connecting", 200)
+                }
             }
 
             Text {
@@ -163,11 +181,11 @@ Rectangle {
                 font.family: "Ubuntu"
             }
 
-            Sw {
-                id: sw1
-                x: 40
-                y: 184
-            }
+            // Sw {
+                // id: sw1
+                // x: 40
+                // y: 184
+            // }
 
         }
 
@@ -246,13 +264,16 @@ Rectangle {
         Transition {
             from: ""; to: "connecting"; reversible: true
             PropertyAnimation {
-                target: control_flick
+                targets: [control_flick, background_flick]
                 property: "contentX"
                 duration: 400
                 easing.type: Easing.InSine
             }
+        },
+       Transition {
+            from: "connecting"; to: ""; reversible: true
             PropertyAnimation {
-                target: background_flick
+                targets: [control_flick, background_flick]
                 property: "contentX"
                 duration: 400
                 easing.type: Easing.InSine
