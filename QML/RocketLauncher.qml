@@ -1,5 +1,6 @@
 // import QtQuick 1.0 // to target S60 5th Edition or Maemo 5
 import QtQuick 1.1
+import "signals.js" as Signals
 
 Rectangle {
     id: root
@@ -8,16 +9,39 @@ Rectangle {
     color: "#e6e6e6"
     //
 	
-	signal messageAcceptance(string notice, int number);
+	//Сигнал испускается при инициации соединения.
+	//В себе содержит логин и пароль из соответствующих
+	//полей
+	signal cmd_connect(string login, string password);
 	
-    function signalize(status) {
+	//Сигнал испускается при прекращении соединения
+	signal cmd_disconnect();
+	
+	
+	function include(arr, obj) {
+		return (arr.indexOf(obj) != -1);
+	}
+	
+	// эта функция принимает сигнал от 
+	// модуля коннектор и в зависимости
+	// от сигнала реализует поведение 
+	// интерфейса
+    function signal(status) { 
+    	console.log("signal")
         if (status=="200"){
-        	console.log('ok')
-        	root.state = "connecting"
+        	console.log('Connected signal recieved')
+        	console.log(Signals.signal_hash[status])
+        	root.state = "connected"
         }
-        else if (status=="300"){
-        	console.log('not ok')
+        else if ( include(Signals.error_signals, status) ){
+        	console.log("Error signal recieved")
+        	console.log(Signals.signal_hash[status])
         	root.state = ""
+        }
+        else if ( include(Signals.connecting_signals, status) ){
+        	console.log("Connecting signal recieved")
+        	con_status.text = Signals.signal_hash[status]
+        	root.state = "connecting"
         }
     }
     
@@ -31,32 +55,28 @@ Rectangle {
 
         Flickable {
             id: control_flick
-            x: 0
-            y: 290
             height: 270
             contentWidth: 900
             contentHeight: 270
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 0
-            anchors.left: parent.left
-            anchors.leftMargin: 0
-            anchors.right: parent.right
-            anchors.rightMargin: 0
             interactive: false
 
             Small_button {
                 id: pref_button
-                x: 18
-                y: 227
                 width: 28
+                anchors.left: parent.left
+                anchors.leftMargin: 20
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 15
             }
 
             Login_input {
                 id: password_edit
-                x: 40
-                y: 130
+                anchors.left: parent.left
+                anchors.leftMargin: 40
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 100
                 image_path: "images/password_input.svg"
                 default_string: "Password"
                 password: true
@@ -64,14 +84,14 @@ Rectangle {
 
             Login_input {
                 id: login_edit
-                x: 40
-                y: 80
+                anchors.left: parent.left
+                anchors.leftMargin: 40
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 150
             }
 
             Button {
                 id: connect_button
-                x: 80
-                y: 215
                 default_string: "Подключение"
                 anchors.horizontalCenterOffset: -300
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -79,16 +99,18 @@ Rectangle {
                 anchors.bottomMargin: 28
                 onBtnClicked: {
                 	root.state = "connecting"
-                	messageAcceptance("connecting", 200)
+                    cmd_connect(login_edit.default_string, password_edit.default_string)
                 }
             }
 
             Text {
                 id: rocket_one
-                x: 10
-                y: 14
                 color: "#424242"
                 text: qsTr("Rocket One")
+                anchors.left: parent.left
+                anchors.leftMargin: 10
+                anchors.top: parent.top
+                anchors.topMargin: 14
                 font.weight: Font.Light
                 font.italic: false
                 font.bold: false
@@ -98,10 +120,12 @@ Rectangle {
 
             Text {
                 id: connecting
-                x: 310
-                y: 14
                 color: "#424242"
                 text: qsTr("Подключение")
+                anchors.left: parent.left
+                anchors.leftMargin: 310
+                anchors.top: parent.top
+                anchors.topMargin: 14
                 font.weight: Font.Light
                 font.pixelSize: 40
                 font.italic: false
@@ -111,10 +135,12 @@ Rectangle {
 
             Text {
                 id: online
-                x: 610
-                y: 14
                 color: "#424242"
                 text: qsTr("В сети")
+                anchors.left: parent.left
+                anchors.leftMargin: 610
+                anchors.top: parent.top
+                anchors.topMargin: 14
                 font.pixelSize: 40
                 font.weight: Font.Light
                 font.italic: false
@@ -124,10 +150,12 @@ Rectangle {
 
             Text {
                 id: con_status
-                x: 310
-                y: 80
                 color: "#424242"
                 text: qsTr("Соединение с сервером")
+                anchors.left: parent.left
+                anchors.leftMargin: 310
+                anchors.top: parent.top
+                anchors.topMargin: 80
                 font.pixelSize: 20
                 font.weight: Font.Light
                 font.italic: false
@@ -137,22 +165,25 @@ Rectangle {
 
             Progressbar {
                 id: progress_wheel
-                x: 420
-                y: 139
+                anchors.left: parent.left
+                anchors.leftMargin: 420
+                anchors.top: parent.top
+                anchors.topMargin: 140
                 opacity: 0
             }
 
             Button {
                 id: cancel_button
                 x: 380
-                y: 215
+                anchors.horizontalCenter: parent.horizontalCenter
                 top_color: "#EE5F5B"
                 bottom_color: "#BD362F"
                 default_string: "Отмена"
-                anchors.horizontalCenter: parent.horizontalCenter
                 anchors.bottom: parent.bottom
-                anchors.horizontalCenterOffset: 0
                 anchors.bottomMargin: 28
+                onBtnClicked: { cmd_disconnect()
+                                root.state = ""}
+
             }
 
             Button {
@@ -166,14 +197,18 @@ Rectangle {
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenterOffset: 290
                 anchors.bottomMargin: 28
+                onBtnClicked: { cmd_disconnect()
+                                root.state = ""}
             }
 
             Text {
                 id: con_status1
-                x: 63
-                y: 182
                 color: "#424242"
                 text: qsTr("Запомнить")
+                anchors.top: parent.top
+                anchors.topMargin: 180
+                anchors.left: parent.left
+                anchors.leftMargin: 65
                 font.pixelSize: 14
                 font.weight: Font.Light
                 font.italic: false
@@ -215,70 +250,41 @@ Rectangle {
 
         Text {
             id: credits
-            x: 109
-            y: 548
-            width: 191
-            height: 12
             color: "#424242"
             text: qsTr("Powered by Alfa & Pacha @ 2009")
+            anchors.right: parent.right
+            anchors.rightMargin: 20
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 0
             font.family: "DejaVu Sans"
             font.pixelSize: 10
         }
     }
+    
     states: [
         State {
             name: "connecting"
-//            when: mousearea1.containsMouse
-            PropertyChanges{
-                target: control_flick
-                contentX: "300"
-            }
-            PropertyChanges {
-                target: background_flick
-                contentX: "150"
-            }
-
-            PropertyChanges {
-                target: progress_wheel
-                x: 420
-                y: 125
-                opacity: 1
-            }
-
+            PropertyChanges{ target: control_flick; contentX: "300" }
+            PropertyChanges{ target: background_flick; contentX: "150" }
+            PropertyChanges{ target: progress_wheel; opacity: 1 }
         },
         State {
             name: "connected"
-            PropertyChanges {
-                target: control_flick
-                contentX: "600"
-            }
-            PropertyChanges {
-                target: background_flick
-                contentX: "300"
-            }
+            PropertyChanges{ target: control_flick; contentX: "600" }
+            PropertyChanges{ target: background_flick; contentX: "300" }
         }
+        
     ]
-    transitions: [
-        Transition {
-            from: ""; to: "connecting"; reversible: true
-            PropertyAnimation {
-                targets: [control_flick, background_flick]
-                property: "contentX"
-                duration: 400
-                easing.type: Easing.InSine
-            }
-        },
-       Transition {
-            from: "connecting"; to: ""; reversible: true
-            PropertyAnimation {
-                targets: [control_flick, background_flick]
-                property: "contentX"
-                duration: 400
-                easing.type: Easing.InSine
-            }
+
+    transitions: Transition {
+        reversible: true
+        PropertyAnimation {
+			id: slider
+            targets: [control_flick, background_flick]
+            property: "contentX"
+            duration: 400
+            easing.type: Easing.InSine
         }
-    ]
+    }
 
 }

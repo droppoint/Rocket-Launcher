@@ -10,20 +10,7 @@ from Connector import Connector
 import sys
 
 
-#borderless
-#view.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-
-#view.rootContext().setContextProperty('provider', provider)
-
-#findchild
-
-#signals connections
-#rootObject.messageAcceptance.connect(printed)
-
-
-#con = Console()
-#context = view.rootContext()
-#context.setContextProperty("con", con)
+possible_args = ["--debug", "--help", "-d", "-h"] 
 
 if __name__ == "__main__":
     # logger system initialization
@@ -42,7 +29,16 @@ if __name__ == "__main__":
     logger.info('RocketOne. Launch.')
 
     app = QtGui.QApplication(sys.argv)
-    if "-debug" in sys.argv:
+
+#debug system
+    sys.argv.pop(0)
+    for arg in sys.argv:
+        #and startswith
+        if arg not in possible_args:
+            print "HELP!"
+            break
+
+    if "--debug" in sys.argv:
         print "CATCH"
     print sys.argv
 
