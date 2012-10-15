@@ -9,7 +9,6 @@ import logging.handlers
 from Connector import Connector
 import sys
 
-
 possible_args = ["--debug", "--help", "-d", "-h"] 
 
 if __name__ == "__main__":
@@ -37,7 +36,6 @@ if __name__ == "__main__":
         if arg not in possible_args:
             print "HELP!"
             break
-
     if "--debug" in sys.argv:
         print "CATCH"
     print sys.argv

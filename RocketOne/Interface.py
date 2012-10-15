@@ -27,7 +27,7 @@ class Interface(QtDeclarative.QDeclarativeView):
         self.rootObject = self.rootObject()
         self.rootObject.cmd_connect.connect(self.connector.connect)
         self.rootObject.cmd_disconnect.connect(self.connector.disconnect)
-        self.emit_signal("101")
+#        self.emit_signal("101")
         self.show()
         
     def emit_signal(self, status):
