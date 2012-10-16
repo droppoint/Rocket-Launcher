@@ -98,7 +98,7 @@ Rectangle {
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 28
                 onBtnClicked: {
-                	root.state = "connecting"
+                	//root.state = "connecting"
                     cmd_connect(login_edit.default_string, password_edit.default_string)
                 }
             }

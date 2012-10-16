@@ -31,17 +31,16 @@ class Connector():
         self.ovpnconfigpath = self.ovpnpath + '\\config'
         self.ovpnexe = self.ovpnpath + '\\bin\\openvpn.exe'
         self.traymsg = 'OpenVPN Connection Manager'
-        #connection
-        self.connection = Connection('Soloway')
     
     # Интерфейс обрабатывающий входящие сигналы    
     @QtCore.Slot(str, str)
     def connect(self, login, passwd):
         print "connecting"
         startupinfo = subprocess.STARTUPINFO()
+        self.port = 0
         port = self.getNextAvailablePort()
         subprocess.Popen([self.ovpnexe,
-                          '--config', self.ovpnconfigpath + '\\' + self.connection.name + '.ovpn',
+                          '--config', self.ovpnconfigpath + '\\' + 'Soloway.ovpn',
                           '--management', '127.0.0.1', '{0}'.format(port),
                           '--management-query-passwords',
                           '--management-log-cache', '200',
@@ -49,21 +48,40 @@ class Connector():
                           '--auth-user-pass', login, passwd],
                           cwd=self.ovpnconfigpath,
                           startupinfo=startupinfo)
-        self.connection.sock = ManagementInterfaceHandler(self, '127.0.0.1', port)
-        self.connection.port = port
+        self.sock = ManagementInterfaceHandler(self, '127.0.0.1', port)
+        self.logbuf = []
+        self.logdlg = None
+        self.emit_signal("100") #connection started
 #        self.setConnState(index, connecting)
-        self.updateConnection(index)
-        self.updateToolbar(index)
         print startupinfo
 
         
     def disconnect(self):
         print "disconnecting"
-        self.connection.sock.send('signal SIGTERM\n')
+        self.sock.send('signal SIGTERM\n')
     
     # Интерфейс испускающий сигналы 
     def emit_connected(self):
         self.view.emit_signal("200")
+        self.view.hide()
+        
+    def emit_signal(self, status):
+        self.view.emit_signal(status)
+    
+    def got_log_line(self, line):
+        """Called from ManagementInterfaceHandler when new log line is received."""
+        #print 'got log line: "{0}"'.format(line)
+        self.logbuf.append(line)
+        if self.logdlg != None:
+            self.logdlg.AppendText(line)
+
+    def got_state_line(self, line):
+        """Called from ManagementInterfaceHandler when new line describing current OpenVPN's state is received."""
+        #print 'got state line: "{0}"'.format(line)
+        list = line.split(',', 2)
+        state = list[1]
+        if state == 'CONNECTED':
+            self.emit_connected()
     
     #Мясцо
     def getNextAvailablePort(self):
@@ -72,23 +90,29 @@ class Connector():
         found = False
         while not found:
             found = True
-            if self.connection.port != 0:
-                if self.connection.port == minport:
+            if self.port != 0:
+                if self.port == minport:
                     found = False
                     minport += 1
                     break
         return minport
 
 class ManagementInterfaceHandler(asynchat.async_chat):
-    def __init__(self, mainwnd, addr, port):
+    def __init__(self, connector, addr, port):
         asynchat.async_chat.__init__(self)
-        #print 'ManagementInterfaceHandler construct'
-        self.mainwnd = mainwnd
+        logger = logging.getLogger('RocketOne.ManagementInterfaceHandler')
+        logger.info("Connector start")
         self.port = port
         self.buf = ''
         self.set_terminator('\n')
+        
+#        from connection
+        self.state = disconnected
+        logger.info("Management Interface Handler started")
+        
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect((addr, port))
+        self.connector = connector
         
     def handle_connect(self):
         #print 'handle_connect ({0})'.format(self.port)
@@ -96,7 +120,7 @@ class ManagementInterfaceHandler(asynchat.async_chat):
         
     def handle_close(self):
         #print 'handle_close'
-        self.mainwnd.Disconnected(self.port)
+        # emit signal disconnect
         asynchat.async_chat.handle_close(self)
     
     def collect_incoming_data(self, data):
@@ -105,48 +129,22 @@ class ManagementInterfaceHandler(asynchat.async_chat):
         
     def found_terminator(self):
         #print 'found_terminator ({0}) buf: "{1}"'.format(self.port, self.buf)
-        if self.buf.startswith(">PASSWORD:Need 'Auth'"):
-            authdlg = AuthDlg(self.mainwnd)
-            if authdlg.ShowModal() == wx.ID_OK:
-                username = authdlg.username.GetValue()
-                password = authdlg.password.GetValue()
-                self.send('username "Auth" {0}\n'.format(username))
-                self.send('password "Auth" "{0}"\n'.format(escapePassword(password)))
-            authdlg.Destroy()
-        elif self.buf.startswith('>HOLD:Waiting for hold release'):
+        if self.buf.startswith('>HOLD:Waiting for hold release'):
             self.send('log on all\n') # enable logging and dump current log contents
             self.send('state on all\n') # ask openvpn to automatically report its state and show current
             self.send('hold release\n') # tell openvpn to continue its start procedure
+        elif self.buf.startswith('>FATAL:'):
+            self.connector.emit_signal("400")
+        elif self.buf.startswith('>PASSWORD:Verification Failed:'):
+            self.connector.emit_signal("403")
         elif self.buf.startswith('>LOG:'):
-            self.mainwnd.GotLogLine(self.port, self.buf[5:])
+            self.connector.got_log_line(self.buf[5:]) # Пропускает LOG:
         elif self.buf.startswith('>STATE:'):
-            self.mainwnd.GotStateLine(self.port, self.buf[7:])
+            self.connector.got_state_line(self.buf[7:]) # Пропускает STATE:
         self.buf = ''
     
 # 'enum' of connection states
 (disconnected, failed, connecting, disconnecting, connected) = range(5)
-
-class Connection(object):
-    def __init__(self, name):
-        self.name = name
-        self.state = disconnected # do not set this field directly, use MainWindow.setConnState()
-        self.sock = None # ManagementInterfaceHandler
-        self.port = 0
-        self.logbuf = []
-        self.logdlg = None # LogDlg
-    def stateString(self):
-        if self.state == disconnected:
-            return 'Disconnected'
-        elif self.state == failed:
-            return 'Error'
-        elif self.state == connecting:
-            return 'Connecting'
-        elif self.state == disconnecting:
-            return 'Disconnecting'
-        elif self.state == connected:
-            return 'Connected'
-        else:
-            return 'Error'
 
 def getBasePath():
     if hasattr(sys, "frozen") and sys.frozen == "windows_exe":

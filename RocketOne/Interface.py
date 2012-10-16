@@ -37,8 +37,7 @@ class Interface(QtDeclarative.QDeclarativeView):
         
     def emit_signal(self, status):
         self.rootObject.signal(status)
-        
-    
+
     def createActions(self):
         self.disconnectAction = QtGui.QAction(u"Отключить", self,
                 triggered=self.connector.disconnect)
