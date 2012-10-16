@@ -13,6 +13,9 @@ import subprocess
 import socket, asyncore, asynchat
 import sys
 
+logger = logging.getLogger('RocketOne.Connector')
+
+
 class Connector():
     '''
     classdocs
@@ -22,8 +25,6 @@ class Connector():
         '''
         Constructor
         '''
-        logger = logging.getLogger('RocketOne.Connector')
-        logger.info("Connector start")
         self.view = Interface(self)
         # Пути до OpenVPN
         self.ovpnpath = 'C:\\Program Files (x86)\\OpenVPN'
@@ -31,41 +32,50 @@ class Connector():
         self.ovpnconfigpath = self.ovpnpath + '\\config'
         self.ovpnexe = self.ovpnpath + '\\bin\\openvpn.exe'
         self.traymsg = 'OpenVPN Connection Manager'
+        logger.info("Connector start")
     
     # Интерфейс обрабатывающий входящие сигналы    
     @QtCore.Slot(str, str)
     def connect(self, login, passwd):
         print "connecting"
-        startupinfo = subprocess.STARTUPINFO()
         self.port = 0
         port = self.getNextAvailablePort()
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         subprocess.Popen([self.ovpnexe,
                           '--config', self.ovpnconfigpath + '\\' + 'Soloway.ovpn',
                           '--management', '127.0.0.1', '{0}'.format(port),
                           '--management-query-passwords',
                           '--management-log-cache', '200',
-                          '--management-hold',
-                          '--auth-user-pass', login, passwd],
+                          '--management-hold'],
                           cwd=self.ovpnconfigpath,
                           startupinfo=startupinfo)
         self.sock = ManagementInterfaceHandler(self, '127.0.0.1', port)
+        self.port = port
         self.logbuf = []
         self.logdlg = None
         self.emit_signal("100") #connection started
+        asyncore.loop(timeout=0, use_poll=True)
+#        self.sock.send("STATUS \n")
 #        self.setConnState(index, connecting)
-        print startupinfo
+#        print startupinfo
 
         
     def disconnect(self):
-        print "disconnecting"
-        self.sock.send('signal SIGTERM\n')
+        logger.info("Shutting down connection")
+        if hasattr(self, "sock"):
+            self.sock.send('signal SIGTERM\n')
+#            self.sock.send('hold release\n')
     
     # Интерфейс испускающий сигналы 
     def emit_connected(self):
+        logger.info("Connection initiated")
         self.view.emit_signal("200")
         self.view.hide()
         
     def emit_signal(self, status):
+        logger.info("Emitted signal to qml")
+        logger.info("SIGNAL " + status)
         self.view.emit_signal(status)
     
     def got_log_line(self, line):
@@ -100,35 +110,33 @@ class Connector():
 class ManagementInterfaceHandler(asynchat.async_chat):
     def __init__(self, connector, addr, port):
         asynchat.async_chat.__init__(self)
-        logger = logging.getLogger('RocketOne.ManagementInterfaceHandler')
-        logger.info("Connector start")
+        print addr, port
+        self.connector = connector
         self.port = port
         self.buf = ''
         self.set_terminator('\n')
-        
+
 #        from connection
-        self.state = disconnected
         logger.info("Management Interface Handler started")
-        
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect((addr, port))
-        self.connector = connector
         
     def handle_connect(self):
-        #print 'handle_connect ({0})'.format(self.port)
+        print 'handle_connect ({0})'.format(self.port)
         asynchat.async_chat.handle_connect(self)
+
         
     def handle_close(self):
-        #print 'handle_close'
         # emit signal disconnect
         asynchat.async_chat.handle_close(self)
     
     def collect_incoming_data(self, data):
-        #print 'collect_incoming_data ({0}) data: "{1}"'.format(self.port, data)
+        print 'collect_incoming_data ({0}) data: "{1}"'.format(self.port, data)
         self.buf += data
+        logger.info(data)
         
     def found_terminator(self):
-        #print 'found_terminator ({0}) buf: "{1}"'.format(self.port, self.buf)
+#        print 'found_terminator ({0}) buf: "{1}"'.format(self.port, self.buf)
         if self.buf.startswith('>HOLD:Waiting for hold release'):
             self.send('log on all\n') # enable logging and dump current log contents
             self.send('state on all\n') # ask openvpn to automatically report its state and show current

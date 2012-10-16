@@ -5,7 +5,6 @@ Rectangle {
     id: root
     width: 220
     height: 34
-    color: "#ffffff"
     radius: 6
     smooth: true
     border.color: "#cccccc"
@@ -16,24 +15,24 @@ Rectangle {
 
 
     TextInput {
-        id: text_input2
+        id: text_input
         x: 43
         y: 5
         width: 177
         height: 26
         color: "#999999"
         text: qsTr(default_string)
+        echoMode: TextInput.Normal
         smooth: true
         selectByMouse: true
         horizontalAlignment: TextInput.AlignLeft
         font.family: "DejaVu Sans"
         font.pixelSize: 20
         onFocusChanged: if (root.state != 'edit') { root.state = 'edit'}
-
+                        else { default_string = text_input.text }
     }
-
     Image {
-        id: image1
+        id: image
         x: 0
         y: 0
         width: 35
@@ -45,15 +44,10 @@ Rectangle {
         State {
             name: "edit"
             PropertyChanges {
-                target: text_input2
+                target: text_input
                 text: qsTr("")
                 color: "#424242"
                 echoMode: if( root.password ) {TextInput.Password}
-
-            }
-            PropertyChanges{
-                target: root
-                edited: true
             }
         }
     ]
