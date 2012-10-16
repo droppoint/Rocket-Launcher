@@ -9,7 +9,7 @@ import logging.handlers
 from Connector import Connector
 import sys
 
-possible_args = ["--debug", "--help", "-d", "-h"] 
+possible_args = ["--debug", "--help", "-d", "-h"]
 
 if __name__ == "__main__":
     # logger system initialization

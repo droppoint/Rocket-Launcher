@@ -27,8 +27,38 @@ class Interface(QtDeclarative.QDeclarativeView):
         self.rootObject = self.rootObject()
         self.rootObject.cmd_connect.connect(self.connector.connect)
         self.rootObject.cmd_disconnect.connect(self.connector.disconnect)
+        
+        self.createActions()
+        self.createTrayIcon()
 #        self.emit_signal("101")
+        self.trayIcon.show()
         self.show()
+        self.showMessage()
         
     def emit_signal(self, status):
         self.rootObject.signal(status)
+        
+    
+    def createActions(self):
+        self.disconnectAction = QtGui.QAction(u"Отключить", self,
+                triggered=self.connector.disconnect)
+
+        self.propertiesAction = QtGui.QAction(u"Настройки", self)
+        self.quitAction = QtGui.QAction(u"Выход", self)
+    
+    def createTrayIcon(self):
+         self.trayIconMenu = QtGui.QMenu(self)
+         self.trayIconMenu.addAction(self.disconnectAction)
+         self.trayIconMenu.addAction(self.propertiesAction)
+         self.trayIconMenu.addSeparator()
+         self.trayIconMenu.addAction(self.quitAction)
+    
+         self.trayIcon = QtGui.QSystemTrayIcon(self)
+         self.trayIcon.setContextMenu(self.trayIconMenu)
+         
+    def showMessage(self):
+        icon = QtGui.QSystemTrayIcon.MessageIcon(
+                QtGui.QSystemTrayIcon.Information)
+        self.trayIcon.showMessage(u"Подключено",
+                u"Тестовое сообщение", icon,
+                 1000)

@@ -36,7 +36,7 @@ class Connector():
     
     # Интерфейс обрабатывающий входящие сигналы    
     @QtCore.Slot(str, str)
-    def connect(self, word1, word2):
+    def connect(self, login, passwd):
         print "connecting"
         startupinfo = subprocess.STARTUPINFO()
         port = self.getNextAvailablePort()
@@ -45,12 +45,13 @@ class Connector():
                           '--management', '127.0.0.1', '{0}'.format(port),
                           '--management-query-passwords',
                           '--management-log-cache', '200',
-                          '--management-hold'],
+                          '--management-hold',
+                          '--auth-user-pass', login, passwd],
                           cwd=self.ovpnconfigpath,
                           startupinfo=startupinfo)
         self.connection.sock = ManagementInterfaceHandler(self, '127.0.0.1', port)
         self.connection.port = port
-        self.setConnState(index, connecting)
+#        self.setConnState(index, connecting)
         self.updateConnection(index)
         self.updateToolbar(index)
         print startupinfo
@@ -58,6 +59,7 @@ class Connector():
         
     def disconnect(self):
         print "disconnecting"
+        self.connection.sock.send('signal SIGTERM\n')
     
     # Интерфейс испускающий сигналы 
     def emit_connected(self):
