@@ -29,6 +29,7 @@ class ManagementInterfaceHandler(asynchat.async_chat):
         self.set_terminator('\n')
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect((addr, port))
+        print "Management interface ready"
         
     def handle_connect(self):
         #print 'handle_connect ({0})'.format(self.port)

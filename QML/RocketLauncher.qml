@@ -7,6 +7,7 @@ Rectangle {
     width: 300
     height: 560
     color: "#e6e6e6"
+    focus:true
     //
 	
 	//Сигнал испускается при инициации соединения.
@@ -40,10 +41,28 @@ Rectangle {
         }
         else if ( include(Signals.connecting_signals, status) ){
         	console.log("Connecting signal recieved")
-        	con_status.text = Signals.signal_hash[status]
         	root.state = "connecting"
+        	con_status.text = Signals.signal_hash[status]
         }
     }
+	Keys.onPressed: {
+        console.log('button pressed')
+        console.log(event.key)
+        if((event.key === Qt.Key_Enter) || (event.key === Qt.Key_Return)){
+            if(root.state === ""){
+                console.log('connect')
+        	    cmd_connect(login_edit.text, password_edit.text)
+            }
+            else {
+                console.log('disconnect')
+                cmd_disconnect()
+            }
+        } else if (event.key === Qt.Key_Tab){
+            login_edit.focus = true
+        }
+        event.accepted = true;
+    }
+    
     
     MouseArea {
         id: mousearea1
@@ -70,6 +89,16 @@ Rectangle {
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 15
             }
+                
+            Login_input {
+                id: login_edit
+                anchors.left: parent.left
+                anchors.leftMargin: 40
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 150
+                KeyNavigation.tab: password_edit
+                KeyNavigation.down: password_edit
+            }
 
             Login_input {
                 id: password_edit
@@ -77,17 +106,12 @@ Rectangle {
                 anchors.leftMargin: 40
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 100
+                password: true
                 image_path: "images/password_input.svg"
                 default_string: "Password"
-                password: true
-            }
-
-            Login_input {
-                id: login_edit
-                anchors.left: parent.left
-                anchors.leftMargin: 40
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 150
+                KeyNavigation.tab: login_edit
+                KeyNavigation.up: login_edit
+                //password: true
             }
 
             Button {
@@ -99,7 +123,7 @@ Rectangle {
                 anchors.bottomMargin: 28
                 onBtnClicked: {
                 	//root.state = "connecting"
-                    cmd_connect(login_edit.default_string, password_edit.default_string)
+                    cmd_connect(login_edit.text, password_edit.text)
                 }
             }
 

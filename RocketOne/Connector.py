@@ -11,10 +11,14 @@ import logging
 import os
 import subprocess
 import socket, asyncore, asynchat
+import threading
+import time
 import sys
 
 logger = logging.getLogger('RocketOne.Connector')
 
+def zalooper():
+    asyncore.loop(timeout=2)
 
 class Connector():
     '''
@@ -27,10 +31,17 @@ class Connector():
         '''
         self.view = Interface(self)
         # Пути до OpenVPN
-        self.ovpnpath = 'C:\\Program Files (x86)\\OpenVPN'
+#        self.ovpnpath = 'C:\\Program Files (x86)\\OpenVPN'
+#        self.path = getBasePath() + '/'                 
+#        self.ovpnconfigpath = self.ovpnpath + '\\config'
+#        self.ovpnexe = self.ovpnpath + '\\bin\\openvpn.exe'
+#        self.traymsg = 'OpenVPN Connection Manager'
+
+        #Linux Paths
+        self.ovpnpath = ''
         self.path = getBasePath() + '/'                 
-        self.ovpnconfigpath = self.ovpnpath + '\\config'
-        self.ovpnexe = self.ovpnpath + '\\bin\\openvpn.exe'
+        self.ovpnconfigpath = self.ovpnpath + '//home//alexei//SOLOWAY//'
+        self.ovpnexe = self.ovpnpath + 'openvpn'
         self.traymsg = 'OpenVPN Connection Manager'
         logger.info("Connector start")
     
@@ -40,31 +51,40 @@ class Connector():
         print "connecting"
         self.port = 0
         port = self.getNextAvailablePort()
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        subprocess.Popen([self.ovpnexe,
-                          '--config', self.ovpnconfigpath + '\\' + 'Soloway.ovpn',
+        self.login = login
+        self.password = passwd
+        print login, passwd
+        #startupinfo = subprocess.STARTUPINFO()
+#        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        self.process = subprocess.Popen([self.ovpnexe,
+                          '--config', self.ovpnconfigpath + 'Soloway.ovpn',
                           '--management', '127.0.0.1', '{0}'.format(port),
                           '--management-query-passwords',
                           '--management-log-cache', '200',
                           '--management-hold'],
-                          cwd=self.ovpnconfigpath,
-                          startupinfo=startupinfo)
+                          cwd=self.ovpnconfigpath)
+                          #startupinfo=startupinfo)
+        self.emit_signal("100") #connection started
+        time.sleep(1)
         self.sock = ManagementInterfaceHandler(self, '127.0.0.1', port)
         self.port = port
         self.logbuf = []
         self.logdlg = None
-        self.emit_signal("100") #connection started
-        asyncore.loop(timeout=0, use_poll=True)
-#        self.sock.send("STATUS \n")
-#        self.setConnState(index, connecting)
+        evLoop = threading.Thread(target=zalooper)
+        evLoop.setDaemon(True)
+        evLoop.join()
+        print "GO!!!"
 #        print startupinfo
 
         
     def disconnect(self):
         logger.info("Shutting down connection")
+        self.view.emit_signal(400)
+        print "disconnect signal recieved"
         if hasattr(self, "sock"):
             self.sock.send('signal SIGTERM\n')
+        # уничтожает процесс если он еще не уничтожен
+        self.process.terminate()
 #            self.sock.send('hold release\n')
     
     # Интерфейс испускающий сигналы 
@@ -115,7 +135,6 @@ class ManagementInterfaceHandler(asynchat.async_chat):
         self.port = port
         self.buf = ''
         self.set_terminator('\n')
-
 #        from connection
         logger.info("Management Interface Handler started")
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -128,6 +147,7 @@ class ManagementInterfaceHandler(asynchat.async_chat):
         
     def handle_close(self):
         # emit signal disconnect
+        self.connector.emit_signal("200")
         asynchat.async_chat.handle_close(self)
     
     def collect_incoming_data(self, data):
@@ -143,8 +163,13 @@ class ManagementInterfaceHandler(asynchat.async_chat):
             self.send('hold release\n') # tell openvpn to continue its start procedure
         elif self.buf.startswith('>FATAL:'):
             self.connector.emit_signal("400")
+            self.connector.disconnect()
+        elif self.buf.startswith(">PASSWORD:Need 'Auth'"):
+            self.send('username "Auth" {0}\n'.format(self.connector.login))
+            self.send('password "Auth" "{0}"\n'.format(self.connector.password))
         elif self.buf.startswith('>PASSWORD:Verification Failed:'):
             self.connector.emit_signal("403")
+            self.connector.disconnect()
         elif self.buf.startswith('>LOG:'):
             self.connector.got_log_line(self.buf[5:]) # Пропускает LOG:
         elif self.buf.startswith('>STATE:'):

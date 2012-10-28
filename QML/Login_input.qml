@@ -11,7 +11,9 @@ Rectangle {
     property url image_path: "images/login_input.svg"
     property string default_string: "Login"
     property bool edited: false
+    // property bool focused: false
     property bool password: false
+    property string text: text_input.text
 
 
     TextInput {
@@ -20,6 +22,7 @@ Rectangle {
         y: 5
         width: 177
         height: 26
+        focus: root.focus
         color: "#999999"
         text: qsTr(default_string)
         echoMode: TextInput.Normal
@@ -47,7 +50,7 @@ Rectangle {
                 target: text_input
                 text: qsTr("")
                 color: "#424242"
-                echoMode: if( root.password ) {TextInput.Password}
+                echoMode: root.password ? TextInput.Password : TextInput.Normal
             }
         }
     ]
