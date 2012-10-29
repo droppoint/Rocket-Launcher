@@ -38,7 +38,7 @@ Rectangle {
         	console.log("Error signal recieved")
         	console.log(Signals.signal_hash[status])
         	rooter.state = ""
-        	console.log(root.state)
+        	console.log(rooter.state)
         }
         else if ( include(Signals.connecting_signals, status) ){
         	console.log("Connecting signal recieved")

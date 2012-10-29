@@ -32,19 +32,20 @@ class Connector():
         '''
         self.view = Interface(self)
         # Пути до OpenVPN
-#        self.ovpnpath = 'C:\\Program Files (x86)\\OpenVPN'
-#        self.path = getBasePath() + '/'                 
-#        self.ovpnconfigpath = self.ovpnpath + '\\config'
-#        self.ovpnexe = self.ovpnpath + '\\bin\\openvpn.exe'
-#        self.traymsg = 'OpenVPN Connection Manager'
-
-        #Linux Paths
-        self.ovpnpath = ''
+        self.ovpnpath = 'C:\\Program Files (x86)\\OpenVPN'
         self.path = getBasePath() + '/'                 
-        self.ovpnconfigpath = self.ovpnpath + '//home//alexei//SOLOWAY//'
-        self.ovpnexe = self.ovpnpath + 'openvpn'
+        self.ovpnconfigpath = self.ovpnpath + '\\config\\'
+        self.ovpnexe = self.ovpnpath + '\\bin\\openvpn.exe'
         self.traymsg = 'OpenVPN Connection Manager'
         logger.info("Connector start")
+
+        #Linux Paths
+#        self.ovpnpath = ''
+#        self.path = getBasePath() + '/'                 
+#        self.ovpnconfigpath = self.ovpnpath + '//home//alexei//SOLOWAY//'
+#        self.ovpnexe = self.ovpnpath + 'openvpn'
+#        self.traymsg = 'OpenVPN Connection Manager'
+#        logger.info("Connector start")
     
     # Интерфейс обрабатывающий входящие сигналы    
     @QtCore.Slot(str, str)
@@ -70,7 +71,8 @@ class Connector():
 #        time.sleep(1)
 #        self.sock = ManagementInterfaceHandler( '127.0.0.1', port)
 #        self.port = port
-        worker = multiprocessing.Process(target=ManagementInterfaceHandler, args=(self, '127.0.0.1', port))
+        worker = multiprocessing.Process(target=ManagementInterfaceHandler, args=('127.0.0.1', port))
+        #need PIPE!!!
         worker.daemon = True
         worker.start()
         print "GO!!!"
@@ -140,9 +142,9 @@ class Connector():
         return minport
 
 class ManagementInterfaceHandler(asynchat.async_chat):
-    def __init__(self, connector, addr, port):
+    def __init__(self, addr, port):
         asynchat.async_chat.__init__(self)
-        self.connector = connector
+#        self.connector = connector
         self.port = port
         self.buf = ''
         self.set_terminator('\n')
@@ -160,7 +162,7 @@ class ManagementInterfaceHandler(asynchat.async_chat):
         
     def handle_close(self):
         # emit signal disconnect
-        self.connector.emit_signal("400")
+#        self.connector.emit_signal("400")
         asynchat.async_chat.handle_close(self)
     
     def collect_incoming_data(self, data):
@@ -174,19 +176,19 @@ class ManagementInterfaceHandler(asynchat.async_chat):
             self.send('log on all\n') # enable logging and dump current log contents
             self.send('state on all\n') # ask openvpn to automatically report its state and show current
             self.send('hold release\n') # tell openvpn to continue its start procedure
-        elif self.buf.startswith('>FATAL:'):
-            self.connector.emit_signal("400")
-            self.connector.disconnect()
-        elif self.buf.startswith(">PASSWORD:Need 'Auth'"):
-            self.send('username "Auth" {0}\n'.format(self.connector.login))
-            self.send('password "Auth" "{0}"\n'.format(self.connector.password))
-        elif self.buf.startswith('>PASSWORD:Verification Failed:'):
-            self.connector.emit_signal("403")
-            self.connector.disconnect()
-        elif self.buf.startswith('>LOG:'):
-            self.connector.got_log_line(self.buf[5:]) # Пропускает LOG:
-        elif self.buf.startswith('>STATE:'):
-            self.connector.got_state_line(self.buf[7:]) # Пропускает STATE:
+#        elif self.buf.startswith('>FATAL:'):
+#            self.connector.emit_signal("400")
+#            self.connector.disconnect()
+#        elif self.buf.startswith(">PASSWORD:Need 'Auth'"):
+#            self.send('username "Auth" {0}\n'.format(self.connector.login))
+#            self.send('password "Auth" "{0}"\n'.format(self.connector.password))
+#        elif self.buf.startswith('>PASSWORD:Verification Failed:'):
+#            self.connector.emit_signal("403")
+#            self.connector.disconnect()
+#        elif self.buf.startswith('>LOG:'):
+#            self.connector.got_log_line(self.buf[5:]) # Пропускает LOG:
+#        elif self.buf.startswith('>STATE:'):
+#            self.connector.got_state_line(self.buf[7:]) # Пропускает STATE:
         self.buf = ''
     
 # 'enum' of connection states
