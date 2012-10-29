@@ -3,7 +3,7 @@ import QtQuick 1.1
 import "signals.js" as Signals
 
 Rectangle {
-    id: root
+    id: rooter
     width: 300
     height: 560
     color: "#e6e6e6"
@@ -29,33 +29,37 @@ Rectangle {
 	// интерфейса
     function signal(status) { 
     	console.log("signal")
-        if (status=="200"){
+        if (status == "200"){
         	console.log('Connected signal recieved')
         	console.log(Signals.signal_hash[status])
-        	root.state = "connected"
+        	rooter.state = "connected"
         }
         else if ( include(Signals.error_signals, status) ){
         	console.log("Error signal recieved")
         	console.log(Signals.signal_hash[status])
-        	root.state = ""
+        	rooter.state = ""
+        	console.log(root.state)
         }
         else if ( include(Signals.connecting_signals, status) ){
         	console.log("Connecting signal recieved")
-        	root.state = "connecting"
+        	rooter.state = "connecting"
         	con_status.text = Signals.signal_hash[status]
         }
+        console.log(this)
     }
 	Keys.onPressed: {
         console.log('button pressed')
         console.log(event.key)
         if((event.key === Qt.Key_Enter) || (event.key === Qt.Key_Return)){
-            if(root.state === ""){
+            if(rooter.state === ""){
                 console.log('connect')
-        	    cmd_connect(login_edit.text, password_edit.text)
+                // signal("200")
+                cmd_connect(login_edit.text, password_edit.text)
             }
             else {
                 console.log('disconnect')
                 cmd_disconnect()
+                rooter.state = ""
             }
         } else if (event.key === Qt.Key_Tab){
             login_edit.focus = true
@@ -206,7 +210,7 @@ Rectangle {
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 28
                 onBtnClicked: { cmd_disconnect()
-                                root.state = ""}
+                                rooter.state = ""}
 
             }
 
@@ -222,7 +226,7 @@ Rectangle {
                 anchors.horizontalCenterOffset: 290
                 anchors.bottomMargin: 28
                 onBtnClicked: { cmd_disconnect()
-                                root.state = ""}
+                                rooter.state = ""}
             }
 
             Text {
@@ -296,6 +300,7 @@ Rectangle {
             name: "connected"
             PropertyChanges{ target: control_flick; contentX: "600" }
             PropertyChanges{ target: background_flick; contentX: "300" }
+            PropertyChanges{ target: progress_wheel; opacity: 0 }
         }
         
     ]
