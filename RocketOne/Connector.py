@@ -11,6 +11,7 @@ import logging
 import os
 import subprocess
 import socket, asyncore, asynchat
+import multiprocessing
 import threading
 import time
 import sys
@@ -18,7 +19,7 @@ import sys
 logger = logging.getLogger('RocketOne.Connector')
 
 def zalooper():
-    asyncore.loop(timeout=2)
+    asyncore.loop()
 
 class Connector():
     '''
@@ -56,6 +57,7 @@ class Connector():
         print login, passwd
         #startupinfo = subprocess.STARTUPINFO()
 #        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        
         self.process = subprocess.Popen([self.ovpnexe,
                           '--config', self.ovpnconfigpath + 'Soloway.ovpn',
                           '--management', '127.0.0.1', '{0}'.format(port),
@@ -65,21 +67,19 @@ class Connector():
                           cwd=self.ovpnconfigpath)
                           #startupinfo=startupinfo)
         self.emit_signal("100") #connection started
-        time.sleep(1)
-        self.sock = ManagementInterfaceHandler(self, '127.0.0.1', port)
-        self.port = port
-        self.logbuf = []
-        self.logdlg = None
-        evLoop = threading.Thread(target=zalooper)
-        evLoop.setDaemon(True)
-        evLoop.join()
+#        time.sleep(1)
+#        self.sock = ManagementInterfaceHandler( '127.0.0.1', port)
+#        self.port = port
+        worker = multiprocessing.Process(target=ManagementInterfaceHandler, args=(self, '127.0.0.1', port))
+        worker.daemon = True
+        worker.start()
         print "GO!!!"
 #        print startupinfo
 
         
     def disconnect(self):
         logger.info("Shutting down connection")
-        self.view.emit_signal(400)
+        self.emit_signal("400")
         print "disconnect signal recieved"
         if hasattr(self, "sock"):
             self.sock.send('signal SIGTERM\n')
@@ -90,7 +90,7 @@ class Connector():
     # Интерфейс испускающий сигналы 
     def emit_connected(self):
         logger.info("Connection initiated")
-        self.view.emit_signal("200")
+        self.emit_signal("200")
         self.view.hide()
         
     def emit_signal(self, status):
@@ -101,17 +101,29 @@ class Connector():
     def got_log_line(self, line):
         """Called from ManagementInterfaceHandler when new log line is received."""
         #print 'got log line: "{0}"'.format(line)
-        self.logbuf.append(line)
-        if self.logdlg != None:
-            self.logdlg.AppendText(line)
+#        self.logbuf.append(line)
+#        if self.logdlg != None:
+#            self.logdlg.AppendText(line)
+        pass
 
     def got_state_line(self, line):
         """Called from ManagementInterfaceHandler when new line describing current OpenVPN's state is received."""
-        #print 'got state line: "{0}"'.format(line)
+#        print 'got state line: "{0}"'.format(line)
+        print "!!!!"
         list = line.split(',', 2)
         state = list[1]
+        print state 
         if state == 'CONNECTED':
             self.emit_connected()
+        elif state == 'TCP_CONNECT':
+            self.emit_signal("102")
+        elif state == 'AUTH':
+            self.emit_signal("103")
+        elif state == 'GET_CONFIG':
+            self.emit_signal("104")
+        elif state == 'ASSIGN_IP':
+            self.emit_signal("105")
+            
     
     #Мясцо
     def getNextAvailablePort(self):
@@ -130,7 +142,6 @@ class Connector():
 class ManagementInterfaceHandler(asynchat.async_chat):
     def __init__(self, connector, addr, port):
         asynchat.async_chat.__init__(self)
-        print addr, port
         self.connector = connector
         self.port = port
         self.buf = ''
@@ -138,20 +149,22 @@ class ManagementInterfaceHandler(asynchat.async_chat):
 #        from connection
         logger.info("Management Interface Handler started")
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+        time.sleep(1)
         self.connect((addr, port))
+        asyncore.loop()
         
     def handle_connect(self):
-        print 'handle_connect ({0})'.format(self.port)
+#        print 'handle_connect ({0})'.format(self.port)
         asynchat.async_chat.handle_connect(self)
 
         
     def handle_close(self):
         # emit signal disconnect
-        self.connector.emit_signal("200")
+        self.connector.emit_signal("400")
         asynchat.async_chat.handle_close(self)
     
     def collect_incoming_data(self, data):
-        print 'collect_incoming_data ({0}) data: "{1}"'.format(self.port, data)
+#        print 'collect_incoming_data ({0}) data: "{1}"'.format(self.port, data)
         self.buf += data
         logger.info(data)
         
