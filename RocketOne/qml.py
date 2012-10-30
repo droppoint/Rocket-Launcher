@@ -47,6 +47,7 @@ if __name__ == "__main__":
     print sys.argv
 
     controller = Connector()
+    controller.read_settings()
     # выполнить небольшую очистку перед выходом
     sys.exitfunc = cleanup
     sys.exit(app.exec_())

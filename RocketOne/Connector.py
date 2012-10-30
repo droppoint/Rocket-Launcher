@@ -8,12 +8,11 @@ Created on 04.10.2012
 from Interface import Interface
 from PySide import QtCore
 from PySide.QtCore import QTimer, SIGNAL
+from ConfigParser import ConfigParser
 import logging
 import os
 import subprocess
 import socket, asyncore, asynchat
-import multiprocessing
-import threading
 import time
 import sys
 
@@ -36,6 +35,7 @@ class Connector():
         self.ovpnpath = 'C:\\Program Files (x86)\\OpenVPN'
         self.path = getBasePath() + '/'                 
         self.ovpnconfigpath = self.ovpnpath + '\\config\\'
+        self.configfile = 'config.ini' # self.ovpnconfigpath +
         self.ovpnexe = self.ovpnpath + '\\bin\\openvpn.exe'
         self.traymsg = 'OpenVPN Connection Manager'
         logger.info("Connector start")
@@ -54,8 +54,12 @@ class Connector():
         print "connecting"
         self.port = 0
         port = self.getNextAvailablePort()
+        if (not login) or (not passwd):
+            return
         self.login = login
         self.password = passwd
+        if True: # если галочка на месте
+            self.write_settings()
         print login, passwd
         #startupinfo = subprocess.STARTUPINFO()
 #        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -78,9 +82,30 @@ class Connector():
 #        worker.daemon = True
 #        worker.start()
         print "GO!!!"
-        self.emit_signal("200") #connection started
+        self.emit_signal("100") #connection started
 #        print startupinfo
 
+    def read_settings(self):
+        self.config = ConfigParser()
+        self.config.read(self.configfile)
+        if not self.config.has_section('Auth'):
+            return
+        login = self.config.get('Auth', 'User')
+        password = self.config.get('Auth', 'Password')
+        print login, password
+        if login and password:
+            self.view.set_auth(login, password)
+            self.login = login
+            self.password = password
+        
+    def write_settings(self):
+        self.config = ConfigParser()
+        self.config.add_section("Auth")
+        self.config.set("Auth", "User", self.login)
+        self.config.set("Auth", "Password", self.password)
+        with open(self.configfile, 'wb') as configfile:
+            self.config.write(configfile)
+        
         
     def disconnect(self):
         logger.info("Shutting down connection")
@@ -114,10 +139,8 @@ class Connector():
     def got_state_line(self, line):
         """Called from ManagementInterfaceHandler when new line describing current OpenVPN's state is received."""
 #        print 'got state line: "{0}"'.format(line)
-        print "!!!!"
         list = line.split(',', 2)
         state = list[1]
-        print state 
         if state == 'CONNECTED':
             self.emit_connected()
         elif state == 'TCP_CONNECT':

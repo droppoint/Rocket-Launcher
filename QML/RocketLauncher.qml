@@ -27,6 +27,15 @@ Rectangle {
 		return (arr.indexOf(obj) != -1);
 	}
 	
+	function set_auth(login, passwd) {
+		console.log(login)
+		login_edit.text = login
+		login_edit.default_string = login
+		password_edit.text = passwd
+		password_edit.default_string = '********'
+		
+		
+	}
 	// эта функция принимает сигнал от 
 	// модуля коннектор и в зависимости
 	// от сигнала реализует поведение 

@@ -32,7 +32,7 @@ Rectangle {
         font.family: "DejaVu Sans"
         font.pixelSize: 20
         onFocusChanged: if (root.state != 'edit') { root.state = 'edit'}
-                        else { default_string = text_input.text }
+                        else { root.text = text_input.text }
     }
     Image {
         id: image
