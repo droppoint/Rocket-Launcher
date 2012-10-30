@@ -78,7 +78,7 @@ class Connector():
 #        worker.daemon = True
 #        worker.start()
         print "GO!!!"
-        self.emit_signal("100") #connection started
+        self.emit_signal("200") #connection started
 #        print startupinfo
 
         

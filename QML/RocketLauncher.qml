@@ -18,6 +18,10 @@ Rectangle {
 	//Сигнал испускается при прекращении соединения
 	signal cmd_disconnect();
 	
+	FontLoader {
+		id: ubuntu
+		source: "fonts/Ubuntu-L.ttf" 
+	}
 	
 	function include(arr, obj) {
 		return (arr.indexOf(obj) != -1);
@@ -135,6 +139,7 @@ Rectangle {
                 id: rocket_one
                 color: "#424242"
                 text: qsTr("Rocket One")
+                // renderType: Text.NativeRendering
                 anchors.left: parent.left
                 anchors.leftMargin: 10
                 anchors.top: parent.top
@@ -142,8 +147,8 @@ Rectangle {
                 font.weight: Font.Light
                 font.italic: false
                 font.bold: false
-                font.family: "Ubuntu"
-                font.pixelSize: 40
+                font.family: ubuntu.name
+                font.pixelSize: 44
             }
 
             Text {
@@ -158,7 +163,7 @@ Rectangle {
                 font.pixelSize: 40
                 font.italic: false
                 font.bold: false
-                font.family: "Ubuntu"
+                font.family: ubuntu.name
             }
 
             Text {
@@ -173,7 +178,7 @@ Rectangle {
                 font.weight: Font.Light
                 font.italic: false
                 font.bold: false
-                font.family: "Ubuntu"
+                font.family: ubuntu.name
             }
 
             Text {
@@ -188,7 +193,7 @@ Rectangle {
                 font.weight: Font.Light
                 font.italic: false
                 font.bold: false
-                font.family: "Ubuntu"
+                font.family: ubuntu.name
             }
 
             Progressbar {
@@ -241,7 +246,7 @@ Rectangle {
                 font.weight: Font.Light
                 font.italic: false
                 font.bold: false
-                font.family: "Ubuntu"
+                font.family: ubuntu.name
             }
 
             // Sw {
