@@ -7,6 +7,7 @@ Created on 04.10.2012
 
 from Interface import Interface
 from PySide import QtCore
+from PySide.QtCore import QTimer, SIGNAL
 import logging
 import os
 import subprocess
@@ -19,7 +20,7 @@ import sys
 logger = logging.getLogger('RocketOne.Connector')
 
 def zalooper():
-    asyncore.loop()
+    asyncore.poll()
 
 class Connector():
     '''
@@ -58,7 +59,6 @@ class Connector():
         print login, passwd
         #startupinfo = subprocess.STARTUPINFO()
 #        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        
         self.process = subprocess.Popen([self.ovpnexe,
                           '--config', self.ovpnconfigpath + 'Soloway.ovpn',
                           '--management', '127.0.0.1', '{0}'.format(port),
@@ -67,15 +67,18 @@ class Connector():
                           '--management-hold'],
                           cwd=self.ovpnconfigpath)
                           #startupinfo=startupinfo)
-        self.emit_signal("100") #connection started
-#        time.sleep(1)
-#        self.sock = ManagementInterfaceHandler( '127.0.0.1', port)
-#        self.port = port
-        worker = multiprocessing.Process(target=ManagementInterfaceHandler, args=('127.0.0.1', port))
-        #need PIPE!!!
-        worker.daemon = True
-        worker.start()
+        time.sleep(1)
+        self.sock = ManagementInterfaceHandler(self, '127.0.0.1', port)
+        self.port = port
+        self.timer = QTimer()
+        self.timer.connect(SIGNAL("timeout()"), zalooper)
+        self.timer.start(500)
+#        worker = multiprocessing.Process(target=ManagementInterfaceHandler, args=('127.0.0.1', port))
+#        #need PIPE!!!
+#        worker.daemon = True
+#        worker.start()
         print "GO!!!"
+        self.emit_signal("100") #connection started
 #        print startupinfo
 
         
@@ -142,18 +145,17 @@ class Connector():
         return minport
 
 class ManagementInterfaceHandler(asynchat.async_chat):
-    def __init__(self, addr, port):
+    def __init__(self, connector, addr, port):
         asynchat.async_chat.__init__(self)
-#        self.connector = connector
+        self.connector = connector
         self.port = port
         self.buf = ''
         self.set_terminator('\n')
 #        from connection
         logger.info("Management Interface Handler started")
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
-        time.sleep(1)
         self.connect((addr, port))
-        asyncore.loop()
+#        asyncore.loop()
         
     def handle_connect(self):
 #        print 'handle_connect ({0})'.format(self.port)
@@ -162,7 +164,7 @@ class ManagementInterfaceHandler(asynchat.async_chat):
         
     def handle_close(self):
         # emit signal disconnect
-#        self.connector.emit_signal("400")
+        self.connector.emit_signal("400")
         asynchat.async_chat.handle_close(self)
     
     def collect_incoming_data(self, data):
@@ -176,19 +178,19 @@ class ManagementInterfaceHandler(asynchat.async_chat):
             self.send('log on all\n') # enable logging and dump current log contents
             self.send('state on all\n') # ask openvpn to automatically report its state and show current
             self.send('hold release\n') # tell openvpn to continue its start procedure
-#        elif self.buf.startswith('>FATAL:'):
-#            self.connector.emit_signal("400")
-#            self.connector.disconnect()
-#        elif self.buf.startswith(">PASSWORD:Need 'Auth'"):
-#            self.send('username "Auth" {0}\n'.format(self.connector.login))
-#            self.send('password "Auth" "{0}"\n'.format(self.connector.password))
-#        elif self.buf.startswith('>PASSWORD:Verification Failed:'):
-#            self.connector.emit_signal("403")
-#            self.connector.disconnect()
-#        elif self.buf.startswith('>LOG:'):
-#            self.connector.got_log_line(self.buf[5:]) # Пропускает LOG:
-#        elif self.buf.startswith('>STATE:'):
-#            self.connector.got_state_line(self.buf[7:]) # Пропускает STATE:
+        elif self.buf.startswith('>FATAL:'):
+            self.connector.emit_signal("400")
+            self.connector.disconnect()
+        elif self.buf.startswith(">PASSWORD:Need 'Auth'"):
+            self.send('username "Auth" {0}\n'.format(self.connector.login))
+            self.send('password "Auth" "{0}"\n'.format(self.connector.password))
+        elif self.buf.startswith('>PASSWORD:Verification Failed:'):
+            self.connector.emit_signal("403")
+            self.connector.disconnect()
+        elif self.buf.startswith('>LOG:'):
+            self.connector.got_log_line(self.buf[5:]) # Пропускает LOG:
+        elif self.buf.startswith('>STATE:'):
+            self.connector.got_state_line(self.buf[7:]) # Пропускает STATE:
         self.buf = ''
     
 # 'enum' of connection states
