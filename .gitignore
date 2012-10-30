@@ -5,3 +5,6 @@
 *.log.*
 .project
 .pydevproject
+bin\build\
+bin\dist\
+bin\upx.exe
