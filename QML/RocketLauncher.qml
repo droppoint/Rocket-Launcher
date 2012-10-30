@@ -88,7 +88,12 @@ Rectangle {
         onClicked: {
            // Qt.quit();
         }
-
+		
+		CheckBox {
+			 id: checkBox
+     		text: "Check box text"
+ 		}
+			
         Flickable {
             id: control_flick
             height: 270

@@ -193,7 +193,7 @@ class ManagementInterfaceHandler(asynchat.async_chat):
     def collect_incoming_data(self, data):
 #        print 'collect_incoming_data ({0}) data: "{1}"'.format(self.port, data)
         self.buf += data
-        logger.info(data)
+#        logger.info(data)
         
     def found_terminator(self):
 #        print 'found_terminator ({0}) buf: "{1}"'.format(self.port, self.buf)
