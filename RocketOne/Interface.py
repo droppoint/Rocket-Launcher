@@ -49,6 +49,7 @@ class Interface(QtDeclarative.QDeclarativeView):
         self.quitAction = QtGui.QAction(u"Выход", self)
     
     def createTrayIcon(self):
+         icon = QtGui.QIcon('../QML/images/trayicon_32px.svg')
          self.trayIconMenu = QtGui.QMenu(self)
          self.trayIconMenu.addAction(self.disconnectAction)
          self.trayIconMenu.addAction(self.propertiesAction)
@@ -56,6 +57,7 @@ class Interface(QtDeclarative.QDeclarativeView):
          self.trayIconMenu.addAction(self.quitAction)
     
          self.trayIcon = QtGui.QSystemTrayIcon(self)
+         self.trayIcon.setIcon(icon)
          self.trayIcon.setContextMenu(self.trayIconMenu)
          
     def showMessage(self):
