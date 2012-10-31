@@ -88,11 +88,6 @@ Rectangle {
         onClicked: {
            // Qt.quit();
         }
-		
-		CheckBox {
-			 id: checkBox
-     		text: "Check box text"
- 		}
 			
         Flickable {
             id: control_flick
@@ -208,6 +203,13 @@ Rectangle {
                 font.italic: false
                 font.bold: false
                 font.family: ubuntu.name
+                Behavior on text {
+                	SequentialAnimation {
+                         NumberAnimation { target: con_status; property: "opacity"; to: 0; duration: 300 }
+                         PropertyAction { }
+                         NumberAnimation { target: con_status; property: "opacity"; to: 1; duration: 300 }
+                     }
+                }
             }
 
             Progressbar {

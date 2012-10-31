@@ -145,7 +145,7 @@ class Connector():
             self.emit_connected()
         elif state == 'TCP_CONNECT':
             self.emit_signal("102")
-        elif state == 'AUTH':
+        elif state == 'WAIT':
             self.emit_signal("103")
         elif state == 'GET_CONFIG':
             self.emit_signal("104")
