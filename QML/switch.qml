@@ -1,62 +1,60 @@
 // import QtQuick 1.0 // to target S60 5th Edition or Maemo 5
 import QtQuick 1.1
 
- Item {
-     id: toggleswitch
-     width: background.width; height: background.height
+Item {
+    width: 80
+    height: 28
+    clip: false
 
-     property bool on: false
+    Image {
+        id: mask
+        x: 0
+        y: 0
+        width: 80
+        height: 28
+        z: 1
+        source: "mask.svg"
+    }
 
-     function toggle() {
-         if (toggleswitch.state == "on")
-             toggleswitch.state = "off";
-         else
-             toggleswitch.state = "on";
-     }
+    Flickable {
+        id: background
+        x: 0
+        y: 0
+        width: parent.width
+        height: parent.height
+        clip: true
 
-     function releaseSwitch() {
-         if (knob.x == 1) {
-             if (toggleswitch.state == "off") return;
-         }
-         if (knob.x == 78) {
-             if (toggleswitch.state == "on") return;
-         }
-         toggle();
-     }
+        Image {
+            id: background_image
+            x: 0
+            y: 0
+            width: 128
+            height: 30
+            fillMode: Image.Stretch
+            source: "switch.svg"
+            smooth: true
+        }
+    }
 
-     Image {
-         id: background
-         source: "images/background.svg"
-         MouseArea { anchors.fill: parent; onClicked: toggle() }
-     }
+    Item {
+        id: knob
+        x: 47
+        y: -0.500
+        width: 33
+        height: 30
 
-     Image {
-         id: knob
-         x: 1; y: 2
-         source: "images/knob.svg"
+        Image {
+            id: knob_image
+            x: 0
+            y: 0
+            width: parent.width
+            height: parent.height
+            smooth: true
+            source: "knob.svg"
+        }
+    }
 
-         MouseArea {
-             anchors.fill: parent
-             drag.target: knob; drag.axis: Drag.XAxis; drag.minimumX: 1; drag.maximumX: 78
-             onClicked: toggle()
-             onReleased: releaseSwitch()
-         }
-     }
 
-     states: [
-         State {
-             name: "on"
-             PropertyChanges { target: knob; x: 78 }
-             PropertyChanges { target: toggleswitch; on: true }
-         },
-         State {
-             name: "off"
-             PropertyChanges { target: knob; x: 1 }
-             PropertyChanges { target: toggleswitch; on: false }
-         }
-     ]
 
-     transitions: Transition {
-         NumberAnimation { properties: "x"; easing.type: Easing.InOutQuad; duration: 200 }
-     }
- }
+
+}

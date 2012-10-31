@@ -143,6 +143,14 @@ Rectangle {
                     cmd_connect(login_edit.text, password_edit.text)
                 }
             }
+            
+            Switch {
+            	id: switch1
+            	anchors.left: parent.left
+            	anchors.top: parent.top
+            	anchors.topMargin: 180
+            	anchors.leftMargin: 180
+            }
 
             Text {
                 id: rocket_one
