@@ -60,11 +60,11 @@ class Connector():
         self.login = login
         self.password = passwd
         if self.view.remember(): # если галочка на месте
-            self.write_settings()
+            self.write_settings(login, passwd, remember=True)
         else:
-            self.write_empty()
-        print login, passwd
-        #startupinfo = subprocess.STARTUPINFO()
+            self.write_settings("", "")
+
+#        startupinfo = subprocess.STARTUPINFO()
 #        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         self.process = subprocess.Popen([self.ovpnexe,
                           '--config', self.ovpnconfigpath + 'Soloway.ovpn',
@@ -73,19 +73,15 @@ class Connector():
                           '--management-log-cache', '200',
                           '--management-hold'],
                           cwd=self.ovpnconfigpath)
-                          #startupinfo=startupinfo)
+#                          startupinfo=startupinfo)
         self.timer = QTimer()
         self.timer.connect(SIGNAL("timeout()"), zalooper)
         self.timer.start(500)
         self.sock = ManagementInterfaceHandler(self, '127.0.0.1', port)
         self.port = port
-#        worker = multiprocessing.Process(target=ManagementInterfaceHandler, args=('127.0.0.1', port))
-#        #need PIPE!!!
-#        worker.daemon = True
-#        worker.start()
         print "GO!!!"
         self.emit_signal("100") #connection started
-#        print startupinfo
+        print startupinfo
 
     def read_settings(self):
         self.config = ConfigParser()
@@ -94,25 +90,23 @@ class Connector():
             return
         login = self.config.get('Auth', 'User')
         password = self.config.get('Auth', 'Password')
-        print login, password
+        if self.config.has_section('Options'):
+            remember = self.config.get('Options', 'Remember')
+            self.view.set_remember(remember)
+        else: 
+            self.view.set_remember(False)
         if login and password:
             self.view.set_auth(login, password)
             self.login = login
             self.password = password
         
-    def write_settings(self):
+    def write_settings(self, login, passwd, remember=False):
         self.config = ConfigParser()
         self.config.add_section("Auth")
-        self.config.set("Auth", "User", self.login)
-        self.config.set("Auth", "Password", self.password)
-        with open(self.configfile, 'wb') as configfile:
-            self.config.write(configfile)
-    
-    def write_empty(self):
-        self.config = ConfigParser()
-        self.config.add_section("Auth")
-        self.config.set("Auth", "User", "")
-        self.config.set("Auth", "Password", "")
+        self.config.set("Auth", "User", login)
+        self.config.set("Auth", "Password", passwd)
+        self.config.add_section("Options")
+        self.config.set("Options", "Remember", remember)
         with open(self.configfile, 'wb') as configfile:
             self.config.write(configfile)
         
@@ -124,8 +118,10 @@ class Connector():
         if hasattr(self, "sock"):
             self.sock.send('signal SIGTERM\n')
         # уничтожает процесс если он еще не уничтожен
-        self.process.terminate()
-        self.timer.stop()
+        if hasattr(self, "process"):
+            self.process.terminate()
+        if hasattr(self, "timer"):
+            self.timer.stop()
 #            self.sock.send('hold release\n')
     
     # Интерфейс испускающий сигналы 

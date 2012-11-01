@@ -52,6 +52,9 @@ class Interface(QtDeclarative.QDeclarativeView):
     
     def set_auth(self, login, passwd):
         self.rootObject.set_auth(login, passwd)
+    
+    def set_remember(self, status):
+        self.rootObject.set_remember(status)
 
     def createActions(self):
         self.disconnectAction = QtGui.QAction(u"Отключить", self,

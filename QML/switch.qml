@@ -2,24 +2,24 @@
 import QtQuick 1.1
 
 Item {
-	id: root
+	id: toggleswitch
     width: 80
     height: 28
     clip: false
     state: "off"
     property bool checked: false
 	
+    function toggle() {
+    	if (toggleswitch.state == "on")
+            toggleswitch.state = "off";
+        else 
+            toggleswitch.state = "on";
+    	}
+	
 	MouseArea {
 		id: mousearea
 		anchors.fill: parent
-		onClicked: {
-			if (root.state === "on"){	
-				root.state = "off"
-			} else {
-				root.state = "on"
-			}
-		}
-		
+		onClicked: toggle()
 		
 	    Image {
 	        id: mask
@@ -30,7 +30,7 @@ Item {
 	        smooth: true
          fillMode: Image.Stretch
 	        z: 1
-            source: "mask.png"
+            source: "images/mask.png"
 	    }
 	
 	    Flickable {
@@ -50,7 +50,7 @@ Item {
 	            y: 0
 	            width: 128
 	            fillMode: Image.Stretch
-	            source: "switch.svg"
+	            source: "images/switch.svg"
                 height: 28
                 smooth: true
                 z: 0
@@ -72,7 +72,7 @@ Item {
                 width: parent.width
                 height: parent.height
                 smooth: true
-                source: "knob.png"
+                source: "images/knob.png"
             }
         }
 	
@@ -83,13 +83,13 @@ Item {
         	name: "on"
             PropertyChanges{ target: background; contentX: "0"}
             PropertyChanges{ target: knob; x: 48 }
-            PropertyChanges{ target: root; checked: true }
+            PropertyChanges{ target: toggleswitch; checked: true }
         },
         State {
         	name: "off"
         	PropertyChanges{ target: background; contentX: "48"}
             PropertyChanges{ target: knob; x: -2 }
-            PropertyChanges{ target: root; checked: false }
+            PropertyChanges{ target: toggleswitch; checked: false }
         }
      ]
      transitions: Transition {

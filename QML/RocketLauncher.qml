@@ -31,8 +31,17 @@ Rectangle {
 		return remember_switch.checked
 	}
 	
+	function set_remember(status){
+		// коряво очень
+		remember_switch.checked = status
+		if (status === true) {
+			remember_switch.state = "on"
+		} else {
+			remember_switch.state = "off"
+		}
+	}
+	
 	function set_auth(login, passwd) {
-		console.log(login)
 		login_edit.text = login
 		login_edit.default_string = login
 		password_edit.text = passwd
@@ -60,7 +69,6 @@ Rectangle {
         	rooter.state = "connecting"
         	con_status.text = Signals.signal_hash[status]
         }
-        console.log(this)
     }
 	Keys.onPressed: {
         console.log('button pressed')
