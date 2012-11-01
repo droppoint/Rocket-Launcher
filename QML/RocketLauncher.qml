@@ -27,14 +27,16 @@ Rectangle {
 		return (arr.indexOf(obj) != -1);
 	}
 	
+	function remember(){
+		return remember_switch.checked
+	}
+	
 	function set_auth(login, passwd) {
 		console.log(login)
 		login_edit.text = login
 		login_edit.default_string = login
 		password_edit.text = passwd
 		password_edit.default_string = '********'
-		
-		
 	}
 	// эта функция принимает сигнал от 
 	// модуля коннектор и в зависимости
@@ -145,7 +147,7 @@ Rectangle {
             }
             
             Switch {
-            	id: switch1
+            	id: remember_switch
             	anchors.left: parent.left
             	anchors.top: parent.top
             	anchors.topMargin: 180

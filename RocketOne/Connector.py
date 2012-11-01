@@ -19,6 +19,7 @@ import sys
 logger = logging.getLogger('RocketOne.Connector')
 
 def zalooper():
+    print "pass"
     asyncore.poll()
 
 class Connector():
@@ -58,7 +59,7 @@ class Connector():
             return
         self.login = login
         self.password = passwd
-        if True: # если галочка на месте
+        if self.view.remember(): # если галочка на месте
             self.write_settings()
         print login, passwd
         #startupinfo = subprocess.STARTUPINFO()
@@ -71,12 +72,11 @@ class Connector():
                           '--management-hold'],
                           cwd=self.ovpnconfigpath)
                           #startupinfo=startupinfo)
-        time.sleep(1)
-        self.sock = ManagementInterfaceHandler(self, '127.0.0.1', port)
-        self.port = port
         self.timer = QTimer()
         self.timer.connect(SIGNAL("timeout()"), zalooper)
         self.timer.start(500)
+        self.sock = ManagementInterfaceHandler(self, '127.0.0.1', port)
+        self.port = port
 #        worker = multiprocessing.Process(target=ManagementInterfaceHandler, args=('127.0.0.1', port))
 #        #need PIPE!!!
 #        worker.daemon = True
@@ -115,6 +115,7 @@ class Connector():
             self.sock.send('signal SIGTERM\n')
         # уничтожает процесс если он еще не уничтожен
         self.process.terminate()
+        self.timer.stop()
 #            self.sock.send('hold release\n')
     
     # Интерфейс испускающий сигналы 
@@ -130,7 +131,7 @@ class Connector():
     
     def got_log_line(self, line):
         """Called from ManagementInterfaceHandler when new log line is received."""
-        #print 'got log line: "{0}"'.format(line)
+        print 'got log line: "{0}"'.format(line)
 #        self.logbuf.append(line)
 #        if self.logdlg != None:
 #            self.logdlg.AppendText(line)
@@ -187,7 +188,7 @@ class ManagementInterfaceHandler(asynchat.async_chat):
         
     def handle_close(self):
         # emit signal disconnect
-        self.connector.emit_signal("400")
+#        self.connector.emit_signal("400")
         asynchat.async_chat.handle_close(self)
     
     def collect_incoming_data(self, data):

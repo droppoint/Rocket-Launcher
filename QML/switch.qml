@@ -27,6 +27,7 @@ Item {
 	        y: 0
 	        width: 80
 	        height: 28
+	        smooth: true
          fillMode: Image.Stretch
 	        z: 1
             source: "mask.png"

@@ -34,7 +34,19 @@ class Interface(QtDeclarative.QDeclarativeView):
         self.trayIcon.show()
         self.show()
         self.showMessage()
-        
+    
+#    def closeEvent(self, event):
+#        if self.trayIcon.isVisible():
+#            QtGui.QMessageBox.information(self, "Systray",
+#                    "The program will keep running in the system tray. To "
+#                    "terminate the program, choose <b>Quit</b> in the "
+#                    "context menu of the system tray entry.")
+#            self.hide()
+#            event.ignore()
+    
+    def remember(self):
+        return self.rootObject.remember()
+    
     def emit_signal(self, status):
         self.rootObject.signal(status)
     
