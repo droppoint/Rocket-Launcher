@@ -8,18 +8,46 @@
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    version="1.1"
-   width="33"
-   height="30"
-   id="svg5619">
+   width="36"
+   height="33"
+   id="svg5619"
+   inkscape:version="0.48.3.1 r9886"
+   sodipodi:docname="knob.svg"
+   inkscape:export-filename="F:\Aptana\RocketOne\QML\knob.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="734"
+     inkscape:window-height="480"
+     id="namedview19"
+     showgrid="false"
+     inkscape:snap-global="false"
+     inkscape:zoom="5.2149125"
+     inkscape:cx="16.128416"
+     inkscape:cy="12.382606"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg5619" />
   <defs
      id="defs5621">
     <filter
        color-interpolation-filters="sRGB"
        id="filter5511">
       <feGaussianBlur
-         id="feGaussianBlur5513"
-         stdDeviation="0.29290868" />
+         stdDeviation="0.29290868"
+         id="feGaussianBlur5513" />
     </filter>
     <linearGradient
        x1="63.49474"
@@ -41,6 +69,55 @@
          style="stop-color:#e6e6e6;stop-opacity:1"
          offset="1" />
     </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4391"
+       id="linearGradient3771"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.99992403,0,0,1.0000872,0.00486227,-0.00247425)"
+       x1="63.49474"
+       y1="-0.48295644"
+       x2="62.823486"
+       y2="26.801254" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4391"
+       id="linearGradient3779"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.99992403,0,0,1.0000872,0.00486227,-0.00247425)"
+       x1="63.49474"
+       y1="-0.48295644"
+       x2="62.823486"
+       y2="26.801254" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4391"
+       id="linearGradient3785"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.0682667,0,0,1.0776522,-50.370378,0.9115281)"
+       x1="63.49474"
+       y1="-0.48295644"
+       x2="62.823486"
+       y2="26.801254" />
+    <filter
+       inkscape:collect="always"
+       id="filter3804"
+       color-interpolation-filters="sRGB">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.58565106"
+         id="feGaussianBlur3806" />
+    </filter>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4391"
+       id="linearGradient3815"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.0682667,0,0,1.0776522,-50.370378,0.9115281)"
+       x1="63.49474"
+       y1="-0.48295644"
+       x2="62.823486"
+       y2="26.801254" />
   </defs>
   <metadata
      id="metadata5624">
@@ -55,44 +132,41 @@
     </rdf:RDF>
   </metadata>
   <g
-     transform="translate(0,-1022.3622)"
-     id="layer1">
-    <g
-       transform="matrix(0.97931893,0,0,0.97931893,-46.177608,1023.6517)"
-       id="g5611">
-      <g
-         id="g5517">
-        <rect
-           width="31.290926"
-           height="27.29081"
-           rx="10.663527"
-           ry="10.663527"
-           x="48.355759"
-           y="0.35459518"
-           id="rect5389"
-           style="opacity:0.5;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;filter:url(#filter5511)" />
-        <rect
-           width="31.290926"
-           height="27.29081"
-           rx="10.663527"
-           ry="10.663527"
-           x="48.355759"
-           y="0.35459518"
-           id="rect4104"
-           style="opacity:0.98999999;fill:url(#linearGradient5584);fill-opacity:1;stroke:#c8c8c8;stroke-width:0.70913267;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
-        <path
-           d="m 58.506729,7.0413 0,13.7871"
-           id="path4106"
-           style="fill:#666666;stroke:#969696;stroke-width:0.75892788px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-        <path
-           d="m 64.001218,7.0413 0,13.7871"
-           id="path4108"
-           style="fill:none;stroke:#969696;stroke-width:0.75892788px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-        <path
-           d="m 69.495711,7.0413 0,13.7871"
-           id="path4110"
-           style="fill:none;stroke:#969696;stroke-width:0.75892788px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-      </g>
-    </g>
+     id="g3808"
+     transform="matrix(0.99432061,0,0,0.99588989,0.10222909,-0.5116039)">
+    <rect
+       transform="matrix(1.0309403,0,0,1.0659741,-47.981441,2.1902096)"
+       width="31.290926"
+       height="27.29081"
+       rx="10.663527"
+       ry="10.663527"
+       x="48.355759"
+       y="0.35459518"
+       id="rect5389"
+       style="opacity:0.5;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;filter:url(#filter3804)" />
+    <rect
+       width="33.429596"
+       height="29.407436"
+       rx="11.392356"
+       ry="11.49057"
+       x="1.2852002"
+       y="1.2962912"
+       id="rect4104"
+       style="opacity:0.98999999;fill:url(#linearGradient3815);fill-opacity:1;stroke:#c8c8c8;stroke-width:0.76085907;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+    <path
+       d="m 12.129968,8.5016048 0,14.8564022"
+       id="path4106"
+       style="fill:#666666;stroke:#969696;stroke-width:0.81428647px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       inkscape:connector-curvature="0" />
+    <path
+       d="m 17.999994,8.5016048 0,14.8564022"
+       id="path4108"
+       style="fill:none;stroke:#969696;stroke-width:0.81428647px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       inkscape:connector-curvature="0" />
+    <path
+       d="m 23.870024,8.5016048 0,14.8564022"
+       id="path4110"
+       style="fill:none;stroke:#969696;stroke-width:0.81428647px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       inkscape:connector-curvature="0" />
   </g>
 </svg>
