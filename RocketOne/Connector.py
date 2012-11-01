@@ -33,21 +33,23 @@ class Connector():
         '''
         self.view = Interface(self)
         # Пути до OpenVPN
-        self.ovpnpath = 'C:\\Program Files (x86)\\OpenVPN'
-        self.path = getBasePath() + '/'                 
-        self.ovpnconfigpath = self.ovpnpath + '\\config\\'
-        self.configfile = 'config.ini' # self.ovpnconfigpath +
-        self.ovpnexe = self.ovpnpath + '\\bin\\openvpn.exe'
-        self.traymsg = 'OpenVPN Connection Manager'
-        logger.info("Connector start")
-
-        #Linux Paths
-#        self.ovpnpath = ''
-#        self.path = getBasePath() + '/'                 
-#        self.ovpnconfigpath = self.ovpnpath + '//home//alexei//SOLOWAY//'
-#        self.ovpnexe = self.ovpnpath + 'openvpn'
-#        self.traymsg = 'OpenVPN Connection Manager'
-#        logger.info("Connector start")
+        if os.name == "nt":
+            #Windows paths
+            self.ovpnpath = 'C:\\Program Files (x86)\\OpenVPN'
+            self.path = getBasePath() + '/'                 
+            self.ovpnconfigpath = self.ovpnpath + '\\config\\'
+            self.configfile = 'config.ini' # self.ovpnconfigpath +
+            self.ovpnexe = self.ovpnpath + '\\bin\\openvpn.exe'
+            self.traymsg = 'OpenVPN Connection Manager'
+            logger.info("Connector started on Windows")
+        elif os.name == "posix":
+            #Linux Paths
+            self.ovpnpath = ''
+            self.path = getBasePath() + '/'                 
+            self.ovpnconfigpath = self.ovpnpath + '//home//alexei//SOLOWAY//'
+            self.ovpnexe = self.ovpnpath + 'openvpn'
+            self.traymsg = 'OpenVPN Connection Manager'
+            logger.info("Connector started on Linux")
     
     # Интерфейс обрабатывающий входящие сигналы    
     @QtCore.Slot(str, str)
@@ -79,9 +81,7 @@ class Connector():
         self.timer.start(500)
         self.sock = ManagementInterfaceHandler(self, '127.0.0.1', port)
         self.port = port
-        print "GO!!!"
         self.emit_signal("100") #connection started
-        print startupinfo
 
     def read_settings(self):
         self.config = ConfigParser()
@@ -185,7 +185,6 @@ class ManagementInterfaceHandler(asynchat.async_chat):
         logger.info("Management Interface Handler started")
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect((addr, port))
-#        asyncore.loop()
         
     def handle_connect(self):
 #        print 'handle_connect ({0})'.format(self.port)
@@ -193,7 +192,6 @@ class ManagementInterfaceHandler(asynchat.async_chat):
 
         
     def handle_close(self):
-        # emit signal disconnect
 #        self.connector.emit_signal("400")
         asynchat.async_chat.handle_close(self)
     
