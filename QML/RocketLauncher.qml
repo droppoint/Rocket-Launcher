@@ -86,6 +86,10 @@ Rectangle {
             }
         } else if (event.key === Qt.Key_Tab){
             login_edit.focus = true
+        } else if ((event.key === Qt.Key_Escape) && (rooter.state != "")){
+            console.log('disconnect')
+            cmd_disconnect()
+            rooter.state = ""
         }
         event.accepted = true;
     }
