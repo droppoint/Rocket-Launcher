@@ -93,21 +93,12 @@ Rectangle {
 			
         Flickable {
             id: control_flick
-            height: 270
+            height: 280
             contentWidth: 900
             contentHeight: 270
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 0
             interactive: false
-
-            Small_button {
-                id: pref_button
-                width: 28
-                anchors.left: parent.left
-                anchors.leftMargin: 20
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 15
-            }
                 
             Login_input {
                 id: login_edit
@@ -131,27 +122,6 @@ Rectangle {
                 KeyNavigation.tab: login_edit
                 KeyNavigation.up: login_edit
                 //password: true
-            }
-
-            Button {
-                id: connect_button
-                default_string: "Подключение"
-                anchors.horizontalCenterOffset: -300
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 28
-                onBtnClicked: {
-                	//root.state = "connecting"
-                    cmd_connect(login_edit.text, password_edit.text)
-                }
-            }
-            
-            Switch {
-            	id: remember_switch
-            	anchors.left: parent.left
-            	anchors.top: parent.top
-            	anchors.topMargin: 180
-            	anchors.leftMargin: 180
             }
 
             Text {
@@ -239,7 +209,7 @@ Rectangle {
                 bottom_color: "#BD362F"
                 default_string: "Отмена"
                 anchors.bottom: parent.bottom
-                anchors.bottomMargin: 28
+                anchors.bottomMargin: 12
                 onBtnClicked: { cmd_disconnect()
                                 rooter.state = ""}
 
@@ -255,24 +225,85 @@ Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenterOffset: 290
-                anchors.bottomMargin: 28
+                anchors.bottomMargin: 12
                 onBtnClicked: { cmd_disconnect()
                                 rooter.state = ""}
             }
 
-            Text {
-                id: con_status1
-                color: "#424242"
-                text: qsTr("Запомнить")
-                anchors.top: parent.top
-                anchors.topMargin: 180
+            Row {
+                id: remember_row
+                y: 180
+                width: 220
+                height: 28
                 anchors.left: parent.left
-                anchors.leftMargin: 65
-                font.pixelSize: 14
-                font.weight: Font.Light
-                font.italic: false
-                font.bold: false
-                font.family: ubuntu.name
+                anchors.leftMargin: 40
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 57
+
+                Text {
+                    id: remember_label
+                    x: 25
+                    y: 5
+                    width: 71
+                    color: "#424242"
+                    text: qsTr("Запомнить")
+                    anchors.top: parent.top
+                    anchors.topMargin: 4
+                    anchors.left: parent.left
+                    anchors.leftMargin: 50
+                    font.pixelSize: 14
+                    font.weight: Font.Light
+                    font.italic: false
+                    font.bold: false
+                    font.family: ubuntu.name
+                }
+
+                Switch {
+                    id: remember_switch
+                    x: 140
+                    y: 0
+                    anchors.right: parent.right
+                    anchors.rightMargin: 0
+                    anchors.top: parent.top
+                    anchors.topMargin: 0
+            }
+            }
+
+            Row {
+                id: buttons
+                x: 0
+                width: 300
+                height: 30
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 12
+                anchors.left: parent.left
+                anchors.leftMargin: 0
+
+                Button {
+                    id: connect_button
+                    x: 60
+                    y: 0
+                    default_string: "Подключение"
+                    anchors.horizontalCenterOffset: 0
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 0
+                    onBtnClicked: {
+                        //root.state = "connecting"
+                        cmd_connect(login_edit.text, password_edit.text)
+                    }
+                }
+
+                Small_button {
+                    id: pref_button
+                    x: 0
+                    y: 2
+                    width: 28
+                    anchors.left: parent.left
+                    anchors.leftMargin: 13
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 0
+            }
             }
 
             // Sw {

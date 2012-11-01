@@ -61,6 +61,8 @@ class Connector():
         self.password = passwd
         if self.view.remember(): # если галочка на месте
             self.write_settings()
+        else:
+            self.write_empty()
         print login, passwd
         #startupinfo = subprocess.STARTUPINFO()
 #        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -103,6 +105,14 @@ class Connector():
         self.config.add_section("Auth")
         self.config.set("Auth", "User", self.login)
         self.config.set("Auth", "Password", self.password)
+        with open(self.configfile, 'wb') as configfile:
+            self.config.write(configfile)
+    
+    def write_empty(self):
+        self.config = ConfigParser()
+        self.config.add_section("Auth")
+        self.config.set("Auth", "User", "")
+        self.config.set("Auth", "Password", "")
         with open(self.configfile, 'wb') as configfile:
             self.config.write(configfile)
         
