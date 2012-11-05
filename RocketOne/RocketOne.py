@@ -5,8 +5,8 @@ Created on 04.10.2012
 @author: APartilov
 '''
 from PySide import QtCore, QtGui
-import logging.handlers
 from Connector import Connector
+import logging.handlers
 import sys
 
 possible_args = ["--debug", "--help", "-d", "-h"]
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     def cleanup():
         #Перед выходом отключаем соединение
         logger.info("Cleanup operations initiated")
-        controller.disconnect()
+        connector.disconnect()
         logger.info("All cleanup operations completed")
     
     # logger system initialization
@@ -45,9 +45,8 @@ if __name__ == "__main__":
     if "--debug" in sys.argv:
         print "CATCH"
     print sys.argv
-
-    controller = Connector()
-    controller.read_settings()
+    connector = Connector()
+    connector.read_settings()
     # выполнить небольшую очистку перед выходом
     sys.exitfunc = cleanup
     sys.exit(app.exec_())

@@ -18,7 +18,7 @@ import sys
 
 logger = logging.getLogger('RocketOne.Connector')
 
-def zalooper():
+def looper():
     print "pass"
     asyncore.poll()
 
@@ -48,6 +48,7 @@ class Connector():
             self.path = getBasePath() + '/'                 
             self.ovpnconfigpath = self.ovpnpath + '//home//alexei//SOLOWAY//'
             self.ovpnexe = self.ovpnpath + 'openvpn'
+            self.configfile = 'config.ini'
             self.traymsg = 'OpenVPN Connection Manager'
             logger.info("Connector started on Linux")
     
@@ -77,11 +78,18 @@ class Connector():
                           cwd=self.ovpnconfigpath)
 #                          startupinfo=startupinfo)
         self.timer = QTimer()
-        self.timer.connect(SIGNAL("timeout()"), zalooper)
+        self.timer.connect(SIGNAL("timeout()"), looper)
         self.timer.start(500)
-        self.sock = ManagementInterfaceHandler(self, '127.0.0.1', port)
         self.port = port
+        self.atimer = QTimer()
+        self.atimer.setSingleShot(True)
+        self.atimer.timeout.connect(self.manage_process)
+        self.atimer.start(1000)
         self.emit_signal("100") #connection started
+        
+    # Ай молодца, такой качественный костыль придумал
+    def manage_process(self):
+        self.sock = ManagementInterfaceHandler(self, '127.0.0.1', self.port)
 
     def read_settings(self):
         self.config = ConfigParser()
@@ -185,11 +193,15 @@ class ManagementInterfaceHandler(asynchat.async_chat):
         logger.info("Management Interface Handler started")
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect((addr, port))
+        return
         
     def handle_connect(self):
-#        print 'handle_connect ({0})'.format(self.port)
+        print 'handle_connect ({0})'.format(self.port)
         asynchat.async_chat.handle_connect(self)
-
+    
+#    def handle_error(self):
+#        print "Connection Error, retrying"
+#        
         
     def handle_close(self):
 #        self.connector.emit_signal("400")
