@@ -16,7 +16,7 @@ if __name__ == "__main__":
     def cleanup():
         #Перед выходом отключаем соединение
         logger.info("Cleanup operations initiated")
-        connector.disconnect()
+        connector.disconnect(status="405")
         logger.info("All cleanup operations completed")
     
     # logger system initialization
@@ -24,9 +24,9 @@ if __name__ == "__main__":
     logger.setLevel(logging.DEBUG)
     #basic config here
     fh = logging.handlers.RotatingFileHandler('debug.log',
-                                      mode='w',
+                                      mode='a',
                                       maxBytes=524288,
-                                      backupCount=1)
+                                      backupCount=0)
     fh.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
                 '%(asctime)s - %(levelname)s - %(name)s - %(message)s')

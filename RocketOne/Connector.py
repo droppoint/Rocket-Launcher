@@ -19,7 +19,6 @@ import sys
 logger = logging.getLogger('RocketOne.Connector')
 
 def looper():
-    print "pass"
     asyncore.poll()
 
 class Connector():
@@ -41,7 +40,7 @@ class Connector():
             self.configfile = 'config.ini' # self.ovpnconfigpath +
             self.ovpnexe = self.ovpnpath + '\\bin\\openvpn.exe'
             self.traymsg = 'OpenVPN Connection Manager'
-            logger.info("Connector started on Windows")
+            logger.info("Started on Windows")
         elif os.name == "posix":
             #Linux Paths
             self.ovpnpath = ''
@@ -50,12 +49,11 @@ class Connector():
             self.ovpnexe = self.ovpnpath + 'openvpn'
             self.configfile = 'config.ini'
             self.traymsg = 'OpenVPN Connection Manager'
-            logger.info("Connector started on Linux")
+            logger.info("Started on Linux")
     
     # Интерфейс обрабатывающий входящие сигналы    
     @QtCore.Slot(str, str)
     def connect(self, login, passwd):
-        print "connecting"
         self.port = 0
         port = self.getNextAvailablePort()
         if (not login) or (not passwd):
@@ -77,6 +75,7 @@ class Connector():
                           '--management-hold'],
                           cwd=self.ovpnconfigpath)
 #                          startupinfo=startupinfo)
+        logger.info("Subprocess started")
         self.timer = QTimer()
         self.timer.connect(SIGNAL("timeout()"), looper)
         self.timer.start(500)
@@ -118,18 +117,23 @@ class Connector():
         with open(self.configfile, 'wb') as configfile:
             self.config.write(configfile)
         
-        
-    def disconnect(self):
+    @QtCore.Slot(str)    
+    def disconnect(self, status="400"):
         logger.info("Shutting down connection")
-        self.emit_signal("400")
-        print "disconnect signal recieved"
+        self.emit_signal(status)
         if hasattr(self, "sock"):
-            self.sock.send('signal SIGTERM\n')
+            if self.sock:
+                self.sock.send('signal SIGTERM\n')
+                self.sock = None
         # уничтожает процесс если он еще не уничтожен
         if hasattr(self, "process"):
-            self.process.terminate()
+            if self.process:
+                self.process.terminate()
+                self.process = None
         if hasattr(self, "timer"):
-            self.timer.stop()
+            if self.timer:
+                self.timer.stop()
+                self.timer = None
 #            self.sock.send('hold release\n')
     
     # Интерфейс испускающий сигналы 
@@ -139,13 +143,12 @@ class Connector():
         self.view.hide()
         
     def emit_signal(self, status):
-        logger.info("Emitted signal to qml")
-        logger.info("SIGNAL " + status)
+        logger.info("Emit signal " + status)
         self.view.emit_signal(status)
     
     def got_log_line(self, line):
         """Called from ManagementInterfaceHandler when new log line is received."""
-        print 'got log line: "{0}"'.format(line)
+#        print 'got log line: "{0}"'.format(line)
 #        self.logbuf.append(line)
 #        if self.logdlg != None:
 #            self.logdlg.AppendText(line)
@@ -160,7 +163,7 @@ class Connector():
             self.emit_connected()
         elif state == 'TCP_CONNECT':
             self.emit_signal("102")
-        elif state == 'WAIT':
+        elif state == 'AUTH':
             self.emit_signal("103")
         elif state == 'GET_CONFIG':
             self.emit_signal("104")
@@ -188,45 +191,48 @@ class ManagementInterfaceHandler(asynchat.async_chat):
         self.connector = connector
         self.port = port
         self.buf = ''
-        self.set_terminator('\n')
+        self.set_terminator('\r\n')
 #        from connection
-        logger.info("Management Interface Handler started")
+        self.logger = logging.getLogger("RocketOne.ManagementInterfaceHandler")
+        self.logger.info("Start")
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+        print "CONNNNNECT"
         self.connect((addr, port))
-        return
         
     def handle_connect(self):
-        print 'handle_connect ({0})'.format(self.port)
         asynchat.async_chat.handle_connect(self)
     
-#    def handle_error(self):
-#        print "Connection Error, retrying"
-#        
+    def handle_error(self):
+        self.logger.error("Connection error")
+        self.close()
+        raise
         
     def handle_close(self):
-#        self.connector.emit_signal("400")
+        self.logger.info("Closing socket")
+        self.buf = None
+        self.close()
         asynchat.async_chat.handle_close(self)
     
     def collect_incoming_data(self, data):
-#        print 'collect_incoming_data ({0}) data: "{1}"'.format(self.port, data)
-        self.buf += data
+        print 'collect_incoming_data ({0}) data: "{1}"'.format(self.port, data)
+        self.buf = data
 #        logger.info(data)
         
     def found_terminator(self):
-#        print 'found_terminator ({0}) buf: "{1}"'.format(self.port, self.buf)
+        print "!!!!!" + self.buf
         if self.buf.startswith('>HOLD:Waiting for hold release'):
-            self.send('log on all\n') # enable logging and dump current log contents
-            self.send('state on all\n') # ask openvpn to automatically report its state and show current
-            self.send('hold release\n') # tell openvpn to continue its start procedure
+            self.send('log on all\r\n') # enable logging and dump current log contents
+            self.send('state on all\r\n') # ask openvpn to automatically report its state and show current
+            self.send('hold release\r\n') # tell openvpn to continue its start procedure
         elif self.buf.startswith('>FATAL:'):
-            self.connector.emit_signal("400")
-            self.connector.disconnect()
+            self.connector.disconnect(status="400")
         elif self.buf.startswith(">PASSWORD:Need 'Auth'"):
-            self.send('username "Auth" {0}\n'.format(self.connector.login))
-            self.send('password "Auth" "{0}"\n'.format(self.connector.password))
+            print "SEND1"
+            self.send('username \"Auth\" \"{0}\"\r\n'.format(self.connector.login))
+            print "SEND2"
+            self.send('password \"Auth\" \"{0}\"\r\n'.format(self.connector.password))
         elif self.buf.startswith('>PASSWORD:Verification Failed:'):
-            self.connector.emit_signal("403")
-            self.connector.disconnect()
+            self.connector.disconnect(status="403")
         elif self.buf.startswith('>LOG:'):
             self.connector.got_log_line(self.buf[5:]) # Пропускает LOG:
         elif self.buf.startswith('>STATE:'):

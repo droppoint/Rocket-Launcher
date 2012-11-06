@@ -16,7 +16,7 @@ Rectangle {
 	signal cmd_connect(string login, string password);
 	
 	//Сигнал испускается при прекращении соединения
-	signal cmd_disconnect();
+	signal cmd_disconnect(string status);
 	
 	FontLoader {
 		id: ubuntu
@@ -76,19 +76,18 @@ Rectangle {
         if((event.key === Qt.Key_Enter) || (event.key === Qt.Key_Return)){
             if(rooter.state === ""){
                 console.log('connect')
-                // signal("200")
                 cmd_connect(login_edit.text, password_edit.text)
             }
             else {
                 console.log('disconnect')
-                cmd_disconnect()
+                cmd_disconnect("405")
                 rooter.state = ""
             }
         } else if (event.key === Qt.Key_Tab){
             login_edit.focus = true
         } else if ((event.key === Qt.Key_Escape) && (rooter.state != "")){
             console.log('disconnect')
-            cmd_disconnect()
+            cmd_disconnect("405")
             rooter.state = ""
         }
         event.accepted = true;
@@ -222,7 +221,7 @@ Rectangle {
                 default_string: "Отмена"
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 12
-                onBtnClicked: { cmd_disconnect()
+                onBtnClicked: { cmd_disconnect("405")
                                 rooter.state = ""}
 
             }
@@ -238,7 +237,7 @@ Rectangle {
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenterOffset: 290
                 anchors.bottomMargin: 12
-                onBtnClicked: { cmd_disconnect()
+                onBtnClicked: { cmd_disconnect("405")
                                 rooter.state = ""}
             }
 
@@ -306,16 +305,16 @@ Rectangle {
                     }
                 }
 
-                Small_button {
-                    id: pref_button
-                    x: 0
-                    y: 2
-                    width: 28
-                    anchors.left: parent.left
-                    anchors.leftMargin: 13
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 0
-            }
+                // Small_button {
+                    // id: pref_button
+                    // x: 0
+                    // y: 2
+                    // width: 28
+                    // anchors.left: parent.left
+                    // anchors.leftMargin: 13
+                    // anchors.bottom: parent.bottom
+                    // anchors.bottomMargin: 0
+            // }
             }
 
             // Sw {
