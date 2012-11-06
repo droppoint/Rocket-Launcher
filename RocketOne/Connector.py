@@ -20,6 +20,10 @@ logger = logging.getLogger('RocketOne.Connector')
 
 def looper():
     asyncore.poll()
+    
+def with_delay(func):
+    time.sleep(0.001)
+    return func
 
 class Connector():
     '''
@@ -120,6 +124,7 @@ class Connector():
     @QtCore.Slot(str)    
     def disconnect(self, status="400"):
         logger.info("Shutting down connection")
+        self.port = 0
         self.emit_signal(status)
         if hasattr(self, "sock"):
             if self.sock:
@@ -190,7 +195,7 @@ class ManagementInterfaceHandler(asynchat.async_chat):
         asynchat.async_chat.__init__(self)
         self.connector = connector
         self.port = port
-        self.buf = ''
+        self.buf = ""
         self.set_terminator('\r\n')
 #        from connection
         self.logger = logging.getLogger("RocketOne.ManagementInterfaceHandler")
@@ -214,30 +219,27 @@ class ManagementInterfaceHandler(asynchat.async_chat):
         asynchat.async_chat.handle_close(self)
     
     def collect_incoming_data(self, data):
-        print 'collect_incoming_data ({0}) data: "{1}"'.format(self.port, data)
-        self.buf = data
+#        print 'collect_incoming_data ({0}) data: "{1}"'.format(self.port, data)
+        self.buf += data
 #        logger.info(data)
         
     def found_terminator(self):
-        print "!!!!!" + self.buf
         if self.buf.startswith('>HOLD:Waiting for hold release'):
-            self.send('log on all\r\n') # enable logging and dump current log contents
-            self.send('state on all\r\n') # ask openvpn to automatically report its state and show current
-            self.send('hold release\r\n') # tell openvpn to continue its start procedure
+            with_delay(self.push('log on all\r\n')) # enable logging and dump current log contents
+            with_delay(self.push('state on all\r\n')) # ask openvpn to automatically report its state and show current
+            with_delay(self.push('hold release\r\n')) # tell openvpn to continue its start procedure
         elif self.buf.startswith('>FATAL:'):
             self.connector.disconnect(status="400")
         elif self.buf.startswith(">PASSWORD:Need 'Auth'"):
-            print "SEND1"
-            self.send('username \"Auth\" \"{0}\"\r\n'.format(self.connector.login))
-            print "SEND2"
-            self.send('password \"Auth\" \"{0}\"\r\n'.format(self.connector.password))
+            with_delay(self.push('username \"Auth\" \"{0}\"\r\n'.format(self.connector.login)))
+            with_delay(self.push('password \"Auth\" \"{0}\"\r\n'.format(self.connector.password)))
         elif self.buf.startswith('>PASSWORD:Verification Failed:'):
             self.connector.disconnect(status="403")
         elif self.buf.startswith('>LOG:'):
             self.connector.got_log_line(self.buf[5:]) # Пропускает LOG:
         elif self.buf.startswith('>STATE:'):
             self.connector.got_state_line(self.buf[7:]) # Пропускает STATE:
-        self.buf = ''
+        self.buf = ""
     
 # 'enum' of connection states
 (disconnected, failed, connecting, disconnecting, connected) = range(5)
