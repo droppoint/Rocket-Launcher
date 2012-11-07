@@ -44,7 +44,7 @@ class Connector():
             self.configfile = 'config.ini' # self.ovpnconfigpath +
             self.ovpnexe = self.ovpnpath + '\\bin\\openvpn.exe'
             self.traymsg = 'OpenVPN Connection Manager'
-            logger.info("Started on Windows")
+            logger.debug("Started on Windows")
         elif os.name == "posix":
             #Linux Paths
             self.ovpnpath = ''
@@ -53,7 +53,7 @@ class Connector():
             self.ovpnexe = self.ovpnpath + 'openvpn'
             self.configfile = 'config.ini'
             self.traymsg = 'OpenVPN Connection Manager'
-            logger.info("Started on Linux")
+            logger.debug("Started on Linux")
     
     # Интерфейс обрабатывающий входящие сигналы    
     @QtCore.Slot(str, str)
@@ -79,7 +79,7 @@ class Connector():
                           '--management-hold'],
                           cwd=self.ovpnconfigpath)
 #                          startupinfo=startupinfo)
-        logger.info("Subprocess started")
+        logger.debug("Subprocess started")
         self.timer = QTimer()
         self.timer.connect(SIGNAL("timeout()"), looper)
         self.timer.start(500)
@@ -123,7 +123,7 @@ class Connector():
         
     @QtCore.Slot(str)    
     def disconnect(self, status="400"):
-        logger.info("Shutting down connection")
+        logger.debug("Shutting down connection")
         self.port = 0
         self.emit_signal(status)
         if hasattr(self, "sock"):
@@ -143,12 +143,12 @@ class Connector():
     
     # Интерфейс испускающий сигналы 
     def emit_connected(self):
-        logger.info("Connection initiated")
+        logger.debug("Connection initiated")
         self.emit_signal("200")
         self.view.hide()
         
     def emit_signal(self, status):
-        logger.info("Emit signal " + status)
+        logger.debug("Emit signal " + status)
         self.view.emit_signal(status)
     
     def got_log_line(self, line):
@@ -199,9 +199,8 @@ class ManagementInterfaceHandler(asynchat.async_chat):
         self.set_terminator('\r\n')
 #        from connection
         self.logger = logging.getLogger("RocketOne.ManagementInterfaceHandler")
-        self.logger.info("Start")
+        self.logger.debug("Start")
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
-        print "CONNNNNECT"
         self.connect((addr, port))
         
     def handle_connect(self):
@@ -213,7 +212,7 @@ class ManagementInterfaceHandler(asynchat.async_chat):
         raise
         
     def handle_close(self):
-        self.logger.info("Closing socket")
+        self.logger.debug("Closing socket")
         self.buf = None
         self.close()
         asynchat.async_chat.handle_close(self)

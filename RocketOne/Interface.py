@@ -22,7 +22,7 @@ class Interface(QtDeclarative.QDeclarativeView):
         self.connector = connector
         self.setSource('../QML/RocketLauncher.qml')
         logger = logging.getLogger('RocketOne.Interface')
-        logger.info("Interface start")
+        logger.debug("Interface start")
         #Подключение сигналов
         self.rootObject = self.rootObject()
         self.rootObject.cmd_connect.connect(self.connector.connect)
