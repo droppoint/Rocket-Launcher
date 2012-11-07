@@ -13,13 +13,10 @@ import logging
 import os
 import subprocess
 import socket, asyncore, asynchat
+from datetime import datetime
 import time
 import sys
 
-logger = logging.getLogger('RocketOne.Connector')
-
-def looper():
-    asyncore.poll()
     
 def with_delay(func):
     time.sleep(0.001)
@@ -29,12 +26,13 @@ class Connector():
     '''
     classdocs
     '''
-
     def __init__(self):
         '''
         Constructor
         '''
         self.view = Interface(self)
+        self.logger = logging.getLogger('RocketOne.Connector')
+        self.connected = False
         # Пути до OpenVPN
         if os.name == "nt":
             #Windows paths
@@ -44,7 +42,7 @@ class Connector():
             self.configfile = 'config.ini' # self.ovpnconfigpath +
             self.ovpnexe = self.ovpnpath + '\\bin\\openvpn.exe'
             self.traymsg = 'OpenVPN Connection Manager'
-            logger.debug("Started on Windows")
+            self.logger.debug("Started on Windows")
         elif os.name == "posix":
             #Linux Paths
             self.ovpnpath = ''
@@ -53,7 +51,7 @@ class Connector():
             self.ovpnexe = self.ovpnpath + 'openvpn'
             self.configfile = 'config.ini'
             self.traymsg = 'OpenVPN Connection Manager'
-            logger.debug("Started on Linux")
+            self.logger.debug("Started on Linux")
     
     # Интерфейс обрабатывающий входящие сигналы    
     @QtCore.Slot(str, str)
@@ -68,9 +66,6 @@ class Connector():
             self.write_settings(login, passwd, remember=True)
         else:
             self.write_settings("", "")
-
-#        startupinfo = subprocess.STARTUPINFO()
-#        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         self.process = subprocess.Popen([self.ovpnexe,
                           '--config', self.ovpnconfigpath + 'Soloway.ovpn',
                           '--management', '127.0.0.1', '{0}'.format(port),
@@ -78,19 +73,26 @@ class Connector():
                           '--management-log-cache', '200',
                           '--management-hold'],
                           cwd=self.ovpnconfigpath)
-#                          startupinfo=startupinfo)
-        logger.debug("Subprocess started")
+        self.logger.debug("Subprocess started")
         self.timer = QTimer()
-        self.timer.connect(SIGNAL("timeout()"), looper)
+        self.timer.connect(SIGNAL("timeout()"), self.looper)
         self.timer.start(500)
         self.port = port
         self.atimer = QTimer()
         self.atimer.setSingleShot(True)
         self.atimer.timeout.connect(self.manage_process)
         self.atimer.start(1000)
+        self.start_time = datetime.now()
         self.emit_signal("100") #connection started
-        
-    # Ай молодца, такой качественный костыль придумал
+    
+    def looper(self):
+        ex_time = datetime.now() - self.start_time
+        ex_time = ex_time.total_seconds()
+        if (ex_time > 20) and not self.connected:
+            self.logger.error("Connection time out")
+            self.disconnect("401")
+        asyncore.poll()
+    
     def manage_process(self):
         self.sock = ManagementInterfaceHandler(self, '127.0.0.1', self.port)
 
@@ -123,7 +125,7 @@ class Connector():
         
     @QtCore.Slot(str)    
     def disconnect(self, status="400"):
-        logger.debug("Shutting down connection")
+        self.logger.debug("Shutting down connection")
         self.port = 0
         self.emit_signal(status)
         if hasattr(self, "sock"):
@@ -139,29 +141,24 @@ class Connector():
             if self.timer:
                 self.timer.stop()
                 self.timer = None
-#            self.sock.send('hold release\n')
     
     # Интерфейс испускающий сигналы 
     def emit_connected(self):
-        logger.debug("Connection initiated")
+        self.logger.debug("Connection initiated")
+        self.connected = True
         self.emit_signal("200")
         self.view.hide()
         
     def emit_signal(self, status):
-        logger.debug("Emit signal " + status)
+        self.logger.debug("Emit signal " + status)
         self.view.emit_signal(status)
     
     def got_log_line(self, line):
         """Called from ManagementInterfaceHandler when new log line is received."""
-#        print 'got log line: "{0}"'.format(line)
-#        self.logbuf.append(line)
-#        if self.logdlg != None:
-#            self.logdlg.AppendText(line)
         pass
 
     def got_state_line(self, line):
         """Called from ManagementInterfaceHandler when new line describing current OpenVPN's state is received."""
-#        print 'got state line: "{0}"'.format(line)
         list = line.split(',', 2)
         state = list[1]
         if state == 'CONNECTED':
@@ -199,6 +196,7 @@ class ManagementInterfaceHandler(asynchat.async_chat):
         self.set_terminator('\r\n')
 #        from connection
         self.logger = logging.getLogger("RocketOne.ManagementInterfaceHandler")
+        self.ovpn_logger = logging.getLogger("RocketOne.OpenVPN")
         self.logger.debug("Start")
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect((addr, port))
@@ -218,9 +216,8 @@ class ManagementInterfaceHandler(asynchat.async_chat):
         asynchat.async_chat.handle_close(self)
     
     def collect_incoming_data(self, data):
-#        print 'collect_incoming_data ({0}) data: "{1}"'.format(self.port, data)
         self.buf += data
-#        logger.info(data)
+        self.ovpn_logger.debug(data)
         
     def found_terminator(self):
         if self.buf.startswith('>HOLD:Waiting for hold release'):
