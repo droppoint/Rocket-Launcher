@@ -17,18 +17,20 @@ from datetime import datetime
 import time
 import sys
 
-    
 def with_delay(func):
     time.sleep(0.001)
     return func
 
 class Connector():
-    '''
-    classdocs
+    '''Модуль для обеспечения взаимодействия модуля-обработчика OpenVPN 
+    и интерфейса QML, обеспечивает полное многоуровневое логирование
+    событий (через модуль logging) 
     '''
     def __init__(self):
-        '''
-        Constructor
+        '''Инициализация модуля
+        
+        Выполняется инициализация интерфейса, логгера и статуса соединения
+        Определяется операционная система и задаются соответствующие пути 
         '''
         self.view = Interface(self)
         self.logger = logging.getLogger('RocketOne.Connector')
@@ -56,16 +58,23 @@ class Connector():
     # Интерфейс обрабатывающий входящие сигналы    
     @QtCore.Slot(str, str)
     def connect(self, login, passwd):
+        """ Процедура инициализации соединения
+        Является слотом QT (для получения логина и пароля из QML)
+        """
         self.port = 0
         port = self.getNextAvailablePort()
-        if (not login) or (not passwd):
+        # Если логин и пароль пусты или дефолтные то не соединяемся
+        if (not login) or (not passwd) \
+            or (login == "Login") or (passwd == "password"):
             return
         self.login = login
         self.password = passwd
-        if self.view.remember(): # если галочка на месте
+        # если стоит галочка запомнить пароль TODO: убрать конструкцию
+        if self.view.remember():
             self.write_settings(login, passwd, remember=True)
         else:
             self.write_settings("", "")
+        # Пробуем запустить OpenVPN, не получается - не подключаемся
         try:
             self.process = subprocess.Popen([self.ovpnexe,
                           '--config', self.ovpnconfigpath + 'Soloway.ovpn',
@@ -78,18 +87,28 @@ class Connector():
             self.logger.error("OpenVPN process failed to execute " + str(e))
             return
         self.logger.debug("Subprocess started")
+        # Задаем таймер для asyncore loop устанавливаем на 1 раз в секунду
         self.timer = QTimer()
         self.timer.connect(SIGNAL("timeout()"), self.looper)
         self.timer.start(500)
         self.port = port
+        """ Устанавливаем однократный таймер для запуска обработчика OpenVPN
+        Без таймера openvpn не успевает запуститься, так что при
+        попытке соединения с ним asyncore.async_chat выпадает 
+        """
         self.atimer = QTimer()
         self.atimer.setSingleShot(True)
         self.atimer.timeout.connect(self.manage_process)
         self.atimer.start(1000)
+        # Записываем время старта, через 20 секунд без подключения - disconnect
         self.start_time = datetime.now()
-        self.emit_signal("100") #connection started
+        # Отправляем сигнал в QML о начале соединения
+        self.emit_signal("100")
     
     def looper(self):
+        """ looper проверяет не наступил ли таймаут подключения и
+        собирает данные с async_chat. Завязан на таймер self.timer
+        """
         ex_time = datetime.now() - self.start_time
         ex_time = ex_time.total_seconds()
         if (ex_time > 20) and not self.connected:
@@ -98,9 +117,15 @@ class Connector():
         asyncore.poll()
     
     def manage_process(self):
+        """Запускает обработчик OpenVPN. Выделить в отдельную процедуру пришлось,
+        так как завязан на однократный таймер self.atimer.
+        """
         self.sock = ManagementInterfaceHandler(self, '127.0.0.1', self.port)
 
     def read_settings(self):
+        """Чтение конфига программы через ConfigParser
+        Если что-то находит - записывает во внутренние переменные
+        """
         self.config = ConfigParser()
         self.config.read(self.configfile)
         if not self.config.has_section('Auth'):
@@ -118,6 +143,7 @@ class Connector():
             self.password = password
         
     def write_settings(self, login, passwd, remember=False):
+        """Запись конфига программы"""
         self.config = ConfigParser()
         self.config.add_section("Auth")
         self.config.set("Auth", "User", login)
@@ -129,6 +155,9 @@ class Connector():
         
     @QtCore.Slot(str)    
     def disconnect(self, status="400"):
+        """Прекращение соединения и придание забвению всех процессов
+        и обработчиков (если они есть конечно)
+        """
         self.logger.debug("Shutting down connection")
         self.port = 0
         self.emit_signal(status)
@@ -147,6 +176,8 @@ class Connector():
                 self.timer = None
         
     def emit_signal(self, status):
+        """Отправка сигнала в дальний космос (интерфейс QML)
+        """
         self.logger.debug("Emit signal " + status)
         self.view.emit_signal(status)
         if status == "200":
