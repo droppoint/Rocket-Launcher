@@ -66,13 +66,17 @@ class Connector():
             self.write_settings(login, passwd, remember=True)
         else:
             self.write_settings("", "")
-        self.process = subprocess.Popen([self.ovpnexe,
+        try:
+            self.process = subprocess.Popen([self.ovpnexe,
                           '--config', self.ovpnconfigpath + 'Soloway.ovpn',
                           '--management', '127.0.0.1', '{0}'.format(port),
                           '--management-query-passwords',
                           '--management-log-cache', '200',
                           '--management-hold'],
                           cwd=self.ovpnconfigpath)
+        except Exception as e:
+            self.logger.error("OpenVPN process failed to execute " + str(e))
+            return
         self.logger.debug("Subprocess started")
         self.timer = QTimer()
         self.timer.connect(SIGNAL("timeout()"), self.looper)
