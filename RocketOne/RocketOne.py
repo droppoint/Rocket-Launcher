@@ -15,7 +15,9 @@ if __name__ == "__main__":
         # Disconnecting before exit
         logger.debug("Cleanup operations initiated")
         connector.disconnect(status="405")
+        connector.view.close()
         logger.debug("All cleanup operations completed")
+        
     
     # Logging system initialization
     logger = logging.getLogger('RocketOne')

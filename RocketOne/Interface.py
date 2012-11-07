@@ -81,3 +81,12 @@ class Interface(QtDeclarative.QDeclarativeView):
         self.trayIcon.showMessage(u"Подключено",
                 u"Тестовое сообщение", icon,
                  1000)
+        self.trayIcon.messageClicked.connect(self.showFullMessage)
+    
+    def showFullMessage(self):
+        print "FullMessage"
+        
+
+    def close(self):
+        self.hide()
+        self.trayIcon.hide()

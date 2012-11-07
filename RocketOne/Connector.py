@@ -145,18 +145,19 @@ class Connector():
             if self.timer:
                 self.timer.stop()
                 self.timer = None
-    
-    # Интерфейс испускающий сигналы 
-    def emit_connected(self):
-        self.logger.debug("Connection initiated")
-        self.connected = True
-        self.emit_signal("200")
-        self.view.hide()
         
     def emit_signal(self, status):
         self.logger.debug("Emit signal " + status)
         self.view.emit_signal(status)
-    
+        if status == "200":
+            """Значит подключение было совершено и
+            можно сделать запись в журнале и спрятать
+            окошко в трей. И пусть весь мир подождет....
+            """
+            self.logger.debug("Connection initiated")
+            self.connected = True
+            self.view.hide()
+
     def got_log_line(self, line):
         """Called from ManagementInterfaceHandler when new log line is received."""
         pass
