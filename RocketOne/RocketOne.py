@@ -20,6 +20,8 @@ if __name__ == "__main__":
         
     
     # Logging system initialization
+    sys.stdout = open("log.txt", "a+")
+    sys.stderr = open("errors.txt", "a+") 
     logger = logging.getLogger('RocketOne')
     logger.setLevel(logging.DEBUG)
     fh = logging.handlers.RotatingFileHandler('debug.log',
