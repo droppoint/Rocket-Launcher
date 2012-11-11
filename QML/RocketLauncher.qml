@@ -22,7 +22,15 @@ Rectangle {
 		id: ubuntu
 		source: "fonts/Ubuntu-L.ttf" 
 	}
+		
+	function init_connection(){
+		cmd_connect(login_edit.text, password_edit.text)
+	}
 	
+	function user_disconnect(){
+		cmd_disconnect("405")
+	}
+
 	function include(arr, obj) {
 		return (arr.indexOf(obj) != -1);
 	}
@@ -76,7 +84,7 @@ Rectangle {
         if((event.key === Qt.Key_Enter) || (event.key === Qt.Key_Return)){
             if(rooter.state === ""){
                 console.log('connect')
-                cmd_connect(login_edit.text, password_edit.text)
+                init_connection()
             }
             else {
                 console.log('disconnect')
@@ -300,8 +308,7 @@ Rectangle {
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 0
                     onBtnClicked: {
-                        //root.state = "connecting"
-                        cmd_connect(login_edit.text, password_edit.text)
+                        init_connection()
                     }
                 }
 

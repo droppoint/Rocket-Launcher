@@ -22,7 +22,7 @@ SIGNALS_HASH = {
     "404" : "Сервер принудительно разорвал соединение",
     "405" : "Пользователь разорвал соединение"
 }
-ERROR_SIGNALS = ["400", "401", "402", "403", "404"]
+ERROR_SIGNALS = ["400", "401", "402", "403", "404", "405"]
 CONNECTING_SIGNALS = ["100", "101", "102", "103", "104", "105"]
 #borderless
 #view.setWindowFlags(QtCore.Qt.FramelessWindowHint)
@@ -78,9 +78,14 @@ class Interface(QtDeclarative.QDeclarativeView):
     def emit_signal(self, status):
         self.rootObject.signal(status)
         if status == "200":
+            self.buildTrayMenu(connect=True)
             self.showMessage(SIGNALS_HASH[status])
         elif status in ERROR_SIGNALS:
-            self.showMessage(SIGNALS_HASH[status], caption="Ошибка")
+            self.buildTrayMenu()
+            if status != "405":
+                self.showMessage(SIGNALS_HASH[status], caption="Ошибка")
+        elif status in CONNECTING_SIGNALS:
+            self.buildTrayMenu(connect=True)
     
     def set_auth(self, login, passwd):
         self.rootObject.set_auth(login, passwd)
@@ -90,24 +95,27 @@ class Interface(QtDeclarative.QDeclarativeView):
 
     def createActions(self):
         self.disconnectAction = QtGui.QAction(u"Отключить", self,
-                triggered=self.connector.disconnect)
+                triggered=self.rootObject.user_disconnect)
         self.connectAction = QtGui.QAction(u"Подключить", self,
-                triggered=self.connector.disconnect)
+                triggered=self.rootObject.init_connection)
 #        self.propertiesAction = QtGui.QAction(u"Настройки", self)
         self.quitAction = QtGui.QAction(u"Выход", self, triggered=QtCore.QCoreApplication.quit)
     
-    def createTrayIcon(self):
-         icon = QtGui.QIcon('../QML/images/trayicon_32px.svg')
+    def buildTrayMenu(self, connect=False):
          self.trayIconMenu = QtGui.QMenu(self)
-         self.trayIconMenu.addAction(self.connectAction)
-         self.trayIconMenu.addAction(self.disconnectAction)
-
+         if connect:
+             self.trayIconMenu.addAction(self.disconnectAction)
+         else:
+             self.trayIconMenu.addAction(self.connectAction)
          self.trayIconMenu.addSeparator()
          self.trayIconMenu.addAction(self.quitAction)
-    
-         self.trayIcon = QtGui.QSystemTrayIcon(self)
-         self.trayIcon.setIcon(icon)
          self.trayIcon.setContextMenu(self.trayIconMenu)
+
+    def createTrayIcon(self):
+         icon = QtGui.QIcon('../QML/images/trayicon_32px.svg')
+         self.trayIcon = QtGui.QSystemTrayIcon(self)
+         self.buildTrayMenu()
+         self.trayIcon.setIcon(icon)
          
     def showMessage(self, message, caption="RocketOne", type="info"):
         if type =="error":
