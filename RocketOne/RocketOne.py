@@ -4,7 +4,7 @@
 RocketOne Launcher is a graphical front-end application for OpenVPN on Windows
 and Linux. Build especially for RocketOne Team by Alex Partilov.
 '''
-from PySide import QtCore, QtGui
+from PySide import QtGui
 from Connector import Connector
 import logging.handlers
 import sys
@@ -20,8 +20,8 @@ if __name__ == "__main__":
         
     
     # Logging system initialization
-    sys.stdout = open("log.txt", "a+")
-    sys.stderr = open("errors.txt", "a+") 
+#    sys.stdout = open("log.txt", "a+")
+#    sys.stderr = open("errors.txt", "a+") 
     logger = logging.getLogger('RocketOne')
     logger.setLevel(logging.DEBUG)
     fh = logging.handlers.RotatingFileHandler('debug.log',

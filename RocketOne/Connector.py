@@ -17,8 +17,9 @@ from datetime import datetime
 import time
 import sys
 
+
 def with_delay(func):
-    time.sleep(0.001)
+    time.sleep(0.01)
     return func
 
 class Connector():
@@ -161,19 +162,21 @@ class Connector():
         self.logger.debug("Shutting down connection")
         self.port = 0
         self.emit_signal(status)
+        if hasattr(self, "timer"):
+            if self.timer:
+                self.timer.stop()
+                self.timer = None
         if hasattr(self, "sock"):
             if self.sock:
                 self.sock.send('signal SIGTERM\n')
                 self.sock = None
         # уничтожает процесс если он еще не уничтожен
         if hasattr(self, "process"):
-            if self.process:
+            try:
                 self.process.terminate()
-                self.process = None
-        if hasattr(self, "timer"):
-            if self.timer:
-                self.timer.stop()
-                self.timer = None
+            except WindowsError:
+                self.logger.info("Process has been destroyed correctly")
+            self.process = None
         
     def emit_signal(self, status):
         """Отправка сигнала в дальний космос (интерфейс QML)
@@ -187,7 +190,6 @@ class Connector():
             """
             self.logger.debug("Connection initiated")
             self.connected = True
-            self.view.hide()
 
     def got_log_line(self, line):
         """Called from ManagementInterfaceHandler when new log line is received."""
@@ -198,7 +200,7 @@ class Connector():
         list = line.split(',', 2)
         state = list[1]
         if state == 'CONNECTED':
-            self.emit_connected()
+            self.emit_signal("200")
         elif state == 'TCP_CONNECT':
             self.emit_signal("102")
         elif state == 'AUTH':

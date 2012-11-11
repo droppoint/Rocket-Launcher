@@ -7,6 +7,23 @@ Created on 04.10.2012
 from PySide import QtCore, QtGui, QtDeclarative
 import logging
 
+SIGNALS_HASH = {
+    "100" : "Подключение инициировано",
+    "101" : "Открытие сокета",
+    "102" : "Установка туннеля",
+    "103" : "Авторизация",
+    "104" : "Получение конфигурации",
+    "105" : "Получение маршрутов",
+    "200" : "Соединение установлено",
+    "400" : "Разрыв соединения по неустановленой причине",
+    "401" : "Сервер недоступен",
+    "402" : "Учетная запись истекла",
+    "403" : "Ошибка авторизации (Логин/Пароль не верны)",
+    "404" : "Сервер принудительно разорвал соединение",
+    "405" : "Пользователь разорвал соединение"
+}
+ERROR_SIGNALS = ["400", "401", "402", "403", "404", "405"]
+CONNECTING_SIGNALS = ["100", "101", "102", "103", "104", "105"]
 #borderless
 #view.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 class Interface(QtDeclarative.QDeclarativeView):
@@ -30,25 +47,36 @@ class Interface(QtDeclarative.QDeclarativeView):
         
         self.createActions()
         self.createTrayIcon()
+        self.setWindowFlags(QtCore.Qt.WindowCloseButtonHint)
+        self.setWindowTitle("RocketOne")
+        self.trayIcon.activated.connect(self.iconActivated)
 #        self.emit_signal("101")
         self.trayIcon.show()
         self.show()
-        self.showMessage()
+#        self.showMessage()=
     
-#    def closeEvent(self, event):
-#        if self.trayIcon.isVisible():
+    def iconActivated(self, reason):
+        if reason in (QtGui.QSystemTrayIcon.Trigger, QtGui.QSystemTrayIcon.DoubleClick):
+            self.show()
+    
+    def closeEvent(self, event):
+        if self.trayIcon.isVisible():
 #            QtGui.QMessageBox.information(self, "Systray",
 #                    "The program will keep running in the system tray. To "
 #                    "terminate the program, choose <b>Quit</b> in the "
 #                    "context menu of the system tray entry.")
-#            self.hide()
-#            event.ignore()
+            self.hide()
+            event.ignore()
     
     def remember(self):
         return self.rootObject.remember()
     
     def emit_signal(self, status):
         self.rootObject.signal(status)
+        if status == "200":
+            self.showMessage(SIGNALS_HASH[status])
+        elif status in ERROR_SIGNALS:
+            self.showMessage(SIGNALS_HASH[status], caption="Ошибка")
     
     def set_auth(self, login, passwd):
         self.rootObject.set_auth(login, passwd)
@@ -60,14 +88,14 @@ class Interface(QtDeclarative.QDeclarativeView):
         self.disconnectAction = QtGui.QAction(u"Отключить", self,
                 triggered=self.connector.disconnect)
 
-        self.propertiesAction = QtGui.QAction(u"Настройки", self)
-        self.quitAction = QtGui.QAction(u"Выход", self)
+#        self.propertiesAction = QtGui.QAction(u"Настройки", self)
+        self.quitAction = QtGui.QAction(u"Выход", self, triggered=QtCore.QCoreApplication.quit)
     
     def createTrayIcon(self):
          icon = QtGui.QIcon('../QML/images/trayicon_32px.svg')
          self.trayIconMenu = QtGui.QMenu(self)
          self.trayIconMenu.addAction(self.disconnectAction)
-         self.trayIconMenu.addAction(self.propertiesAction)
+#         self.trayIconMenu.addAction(self.propertiesAction)
          self.trayIconMenu.addSeparator()
          self.trayIconMenu.addAction(self.quitAction)
     
@@ -75,16 +103,18 @@ class Interface(QtDeclarative.QDeclarativeView):
          self.trayIcon.setIcon(icon)
          self.trayIcon.setContextMenu(self.trayIconMenu)
          
-    def showMessage(self):
-        icon = QtGui.QSystemTrayIcon.MessageIcon(
+    def showMessage(self, message, caption="RocketOne", type="info"):
+        if type =="error":
+            icon = QtGui.QSystemTrayIcon.MessageIcon(
+                QtGui.QSystemTrayIcon.Error)
+        else:
+            icon = QtGui.QSystemTrayIcon.MessageIcon(
                 QtGui.QSystemTrayIcon.Information)
-        self.trayIcon.showMessage(u"Подключено",
-                u"Тестовое сообщение", icon,
-                 1000)
-        self.trayIcon.messageClicked.connect(self.showFullMessage)
+        self.trayIcon.showMessage(unicode(caption),
+                unicode(message), icon,
+                 500)
+#        self.trayIcon.messageClicked.connect(self.showFullMessage)
     
-    def showFullMessage(self):
-        print "FullMessage"
         
 
     def close(self):
