@@ -22,7 +22,7 @@ SIGNALS_HASH = {
     "404" : "Сервер принудительно разорвал соединение",
     "405" : "Пользователь разорвал соединение"
 }
-ERROR_SIGNALS = ["400", "401", "402", "403", "404", "405"]
+ERROR_SIGNALS = ["400", "401", "402", "403", "404"]
 CONNECTING_SIGNALS = ["100", "101", "102", "103", "104", "105"]
 #borderless
 #view.setWindowFlags(QtCore.Qt.FramelessWindowHint)
@@ -48,6 +48,10 @@ class Interface(QtDeclarative.QDeclarativeView):
         self.createActions()
         self.createTrayIcon()
         self.setWindowFlags(QtCore.Qt.WindowCloseButtonHint)
+        self.setMinimumSize(QtCore.QSize(300, 560))
+        self.setMaximumSize(QtCore.QSize(300, 560))
+        self.setSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+#        self.setWindowIcon()
         self.setWindowTitle("RocketOne")
         self.trayIcon.activated.connect(self.iconActivated)
 #        self.emit_signal("101")
@@ -87,15 +91,17 @@ class Interface(QtDeclarative.QDeclarativeView):
     def createActions(self):
         self.disconnectAction = QtGui.QAction(u"Отключить", self,
                 triggered=self.connector.disconnect)
-
+        self.connectAction = QtGui.QAction(u"Подключить", self,
+                triggered=self.connector.disconnect)
 #        self.propertiesAction = QtGui.QAction(u"Настройки", self)
         self.quitAction = QtGui.QAction(u"Выход", self, triggered=QtCore.QCoreApplication.quit)
     
     def createTrayIcon(self):
          icon = QtGui.QIcon('../QML/images/trayicon_32px.svg')
          self.trayIconMenu = QtGui.QMenu(self)
+         self.trayIconMenu.addAction(self.connectAction)
          self.trayIconMenu.addAction(self.disconnectAction)
-#         self.trayIconMenu.addAction(self.propertiesAction)
+
          self.trayIconMenu.addSeparator()
          self.trayIconMenu.addAction(self.quitAction)
     
