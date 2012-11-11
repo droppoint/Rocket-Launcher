@@ -50,7 +50,7 @@ Item {
 	            y: 0
 	            width: 128
 	            fillMode: Image.Stretch
-	            source: "images/switch.svg"
+	            source: "images/switch.png"
                 height: 28
                 smooth: true
                 z: 0

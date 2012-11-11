@@ -4,7 +4,7 @@ Created on 04.10.2012
 
 @author: APartilov
 '''
-from PySide import QtCore, QtGui, QtDeclarative
+from PySide import QtCore, QtGui, QtDeclarative, QtSvg
 import logging
 
 SIGNALS_HASH = {

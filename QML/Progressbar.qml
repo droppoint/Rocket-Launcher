@@ -8,7 +8,7 @@ Item {
      Image{
               id: rect
               width: 60; height: 60
-              source: "images/progress.svg"
+              source: "images/progress.png"
               smooth: true
               RotationAnimation on rotation{
                   running: true

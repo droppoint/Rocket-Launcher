@@ -136,7 +136,7 @@ Rectangle {
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 100
                 password: true
-                image_path: "images/password_input.svg"
+                image_path: "images/password_input.png"
                 default_string: "Password"
                 KeyNavigation.tab: login_edit
                 KeyNavigation.up: login_edit
@@ -352,7 +352,7 @@ Rectangle {
                 width: 600
                 height: 380
                 z: -1
-                source: "images/background2.svg"
+                source: "images/background2.png"
             }
         }
 

@@ -8,7 +8,7 @@ Rectangle {
     radius: 6
     smooth: true
     border.color: "#cccccc"
-    property url image_path: "images/login_input.svg"
+    property url image_path: "images/login_input.png"
     property string default_string: "Login"
     property bool edited: false
     // property bool focused: false

@@ -171,7 +171,7 @@ class Connector():
                 self.sock.send('signal SIGTERM\n')
                 self.sock = None
         # уничтожает процесс если он еще не уничтожен
-        if hasattr(self, "process"):
+        if hasattr(self, "process") and self.process:
             try:
                 self.process.terminate()
             except WindowsError:
