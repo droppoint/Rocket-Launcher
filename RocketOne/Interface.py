@@ -46,12 +46,13 @@ class Interface(QtDeclarative.QDeclarativeView):
         self.rootObject.cmd_disconnect.connect(self.connector.disconnect)
         
         self.createActions()
-        self.createTrayIcon()
+        self.trayIcon = QtGui.QSystemTrayIcon(self)
+        self.setTrayIcon()
         self.setWindowFlags(QtCore.Qt.WindowCloseButtonHint)
         self.setMinimumSize(QtCore.QSize(300, 560))
         self.setMaximumSize(QtCore.QSize(300, 560))
         self.setSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
-#        self.setWindowIcon()
+        self.setWindowIcon(QtGui.QIcon('../QML/images/trayicon_32px.svg'))
         self.setWindowTitle("RocketOne")
         self.trayIcon.activated.connect(self.iconActivated)
 #        self.emit_signal("101")
@@ -78,10 +79,10 @@ class Interface(QtDeclarative.QDeclarativeView):
     def emit_signal(self, status):
         self.rootObject.signal(status)
         if status == "200":
-            self.buildTrayMenu(connect=True)
+            self.setTrayIcon(connected=True)
             self.showMessage(SIGNALS_HASH[status])
         elif status in ERROR_SIGNALS:
-            self.buildTrayMenu()
+            self.setTrayIcon()
             if status != "405":
                 self.showMessage(SIGNALS_HASH[status], caption="Ошибка")
         elif status in CONNECTING_SIGNALS:
@@ -111,11 +112,15 @@ class Interface(QtDeclarative.QDeclarativeView):
          self.trayIconMenu.addAction(self.quitAction)
          self.trayIcon.setContextMenu(self.trayIconMenu)
 
-    def createTrayIcon(self):
+    def setTrayIcon(self, connected=False):
          icon = QtGui.QIcon('../QML/images/trayicon_32px.svg')
-         self.trayIcon = QtGui.QSystemTrayIcon(self)
-         self.buildTrayMenu()
-         self.trayIcon.setIcon(icon)
+         icon_off = QtGui.QIcon('../QML/images/trayicon_off_32px.svg')
+         if connected:
+             self.trayIcon.setIcon(icon)
+             self.buildTrayMenu(connect=True)
+         else:
+             self.trayIcon.setIcon(icon_off)
+             self.buildTrayMenu()
          
     def showMessage(self, message, caption="RocketOne", type="info"):
         if type =="error":
