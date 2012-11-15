@@ -43,7 +43,7 @@ class Connector():
             self.path = getBasePath() + '/'                 
             self.ovpnconfigpath = self.ovpnpath + '\\config\\'
             self.configfile = 'config.ini' # self.ovpnconfigpath +
-            self.ovpnexe = self.ovpnpath + '\\bin\\openvpn.exe'
+            self.ovpnexe = self.ovpnpath + '\\bin\\openvpnserv.exe'
             self.traymsg = 'OpenVPN Connection Manager'
             self.logger.debug("Started on Windows")
         elif os.name == "posix":

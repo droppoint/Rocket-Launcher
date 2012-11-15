@@ -5,6 +5,7 @@ RocketOne Launcher is a graphical front-end application for OpenVPN on Windows
 and Linux. Build especially for RocketOne Team by Alex Partilov.
 '''
 from PySide import QtGui
+import PySide.QtNetwork
 from Connector import Connector
 import logging.handlers
 import sys
